@@ -1,18 +1,20 @@
-22:10:16 [INFO    ] __main__              ============================================================
-22:10:16 [INFO    ] __main__              Walkie-Talkie LAN Application starting up
-22:10:16 [INFO    ] __main__              ============================================================
-22:10:17 [INFO    ] gui                   StartupDialog displayed
-22:10:24 [INFO    ] gui                   User joined as 'hasan'
-22:10:24 [INFO    ] __main__              User 'hasan' entered credentials
-22:10:24 [DEBUG   ] crypto_utils          Deriving encryption key from passphrase (PBKDF2, 100k iterations)
-22:10:24 [INFO    ] crypto_utils          Encryption key derived successfully
-22:10:24 [INFO    ] __main__              Encryption key derived from passphrase
-22:10:24 [INFO    ] __main__              Initializing VoiceTransport...
-22:10:24 [INFO    ] network               Local IP detected: 192.168.1.110
-22:10:24 [INFO    ] network               VoiceTransport initialized for user 'hasan'
-22:10:24 [INFO    ] __main__              Initializing AudioEngine...
-22:10:24 [INFO    ] audio_engine          AudioEngine initializing (rate=16000, channels=1, dtype=int16, block=1024)
-22:10:24 [DEBUG   ] audio_engine          Available audio devices:
+23:06:39 [INFO    ] __main__              ============================================================
+23:06:39 [INFO    ] __main__              Walkie-Talkie LAN Uygulaması başlatılıyor
+23:06:39 [INFO    ] __main__              ============================================================
+23:06:39 [INFO    ] gui                   Giriş penceresi gösterildi
+23:06:47 [INFO    ] gui                   Kullanıcı 'sa' olarak katıldı
+23:06:47 [INFO    ] __main__              Kullanıcı 'sa' bilgilerini girdi
+23:06:47 [DEBUG   ] crypto_utils          Paroladan şifreleme anahtarı türetiliyor (PBKDF2, 100k iterasyon)
+23:06:47 [INFO    ] crypto_utils          Şifreleme anahtarı başarıyla türetildi
+23:06:47 [INFO    ] __main__              Paroladan şifreleme anahtarı türetildi
+23:06:47 [INFO    ] __main__              SesAktarımı başlatılıyor...
+23:06:47 [INFO    ] network               Tespit edilen yerel IP'ler: {'192.168.114.1', '192.168.1.110', '192.168.146.1', '172.23.144.1', '127.0.0.1'}
+23:06:47 [INFO    ] network               Yayın adresleri: ['<broadcast>', '192.168.146.255', '192.168.114.255', '192.168.1.255', '172.23.144.255']
+23:06:47 [INFO    ] network               SesAktarımı 'sa' kullanıcısı için başlatıldı
+23:06:47 [INFO    ] __main__              SesMotoru başlatılıyor...
+23:06:47 [INFO    ] audio_engine          JitterBuffer oluşturuldu (min=3, maks=15)
+23:06:47 [INFO    ] audio_engine          SesMotoru başlatılıyor (oran=48000, kanal=1, tip=int16, blok=960)
+23:06:47 [DEBUG   ] audio_engine          Mevcut ses cihazları:
    0 Microsoft Ses Eşleştiricisi - Input, MME (2 in, 0 out)
 >  1 Mikrofon (Razer BlackShark V2 P, MME (1 in, 0 out)
    2 Microsoft Ses Eşleştiricisi - Output, MME (0 in, 2 out)
@@ -34,113 +36,1055 @@
   18 Stereo Karışımı (Realtek HD Audio Stereo input), Windows WDM-KS (2 in, 0 out)
   19 Hat Girişi (Realtek HD Audio Line input), Windows WDM-KS (2 in, 0 out)
   20 Output (AMD HD Audio DP out #2), Windows WDM-KS (0 in, 2 out)
-22:10:24 [INFO    ] audio_engine          Default input device: Mikrofon (Razer BlackShark V2 P
-22:10:24 [INFO    ] audio_engine          Default output device: Hoparlör (Razer BlackShark V2 P
-22:10:24 [INFO    ] audio_engine          Playback stream opened and started
-22:10:24 [INFO    ] __main__              Initializing ChatTransport...
-22:10:24 [INFO    ] network               Local IP detected: 192.168.1.110
-22:10:24 [INFO    ] network               ChatTransport initialized for user 'hasan'
-22:10:24 [INFO    ] __main__              Initializing GUI...
-22:10:24 [DEBUG   ] gui                   GUI layout built successfully
-22:10:24 [DEBUG   ] gui                   Key bindings set up (Shift+V for PTT)
-22:10:24 [INFO    ] gui                   WalkieTalkieGUI initialized for user 'hasan'
-22:10:24 [INFO    ] __main__              Initializing PeerDiscovery...
-22:10:24 [INFO    ] network               Local IP detected: 192.168.1.110
-22:10:24 [INFO    ] network               PeerDiscovery initialized for user 'hasan' at 192.168.1.110
-22:10:24 [INFO    ] __main__              Starting all network services...
-22:10:24 [DEBUG   ] network               Bound UDP socket to port 50000
-22:10:24 [DEBUG   ] network               Discovery broadcast loop started
-22:10:24 [DEBUG   ] network               Discovery listen loop started
-22:10:24 [DEBUG   ] network               Peer cleanup loop started
-22:10:24 [DEBUG   ] network               HELLO broadcast sent
-22:10:24 [INFO    ] network               PeerDiscovery started on port 50000
-22:10:24 [INFO    ] network               New peer discovered: 'hasan' at 192.168.146.1
-22:10:24 [DEBUG   ] network               Bound UDP socket to port 50001
-22:10:24 [DEBUG   ] network               Chat listen loop started
-22:10:24 [INFO    ] network               ChatTransport started on port 50001
-22:10:24 [DEBUG   ] network               Bound UDP socket to port 50002
-22:10:24 [DEBUG   ] network               Voice listen loop started
-22:10:24 [INFO    ] network               VoiceTransport started on port 50002
-22:10:24 [INFO    ] __main__              All services started successfully
-22:10:24 [INFO    ] __main__              Entering GUI main loop
-22:10:24 [INFO    ] gui                   Starting tkinter main loop
-22:10:24 [DEBUG   ] __main__              Peers updated: [('hasan', '192.168.146.1')]
-22:10:24 [DEBUG   ] gui                   Peers list updated: 1 peers online
-22:10:26 [DEBUG   ] network               HELLO broadcast sent
-22:10:28 [DEBUG   ] network               HELLO broadcast sent
-22:10:30 [DEBUG   ] network               HELLO broadcast sent
-22:10:32 [DEBUG   ] network               HELLO broadcast sent
-22:10:32 [INFO    ] gui                   Window close requested — shutting down
-22:10:32 [INFO    ] __main__              Shutdown initiated — stopping all services
-22:10:32 [INFO    ] network               PeerDiscovery stopping...
-22:10:32 [INFO    ] network               Peer left: 'hasan' at 192.168.146.1
-22:10:32 [DEBUG   ] network               BYE packet sent
-22:10:32 [INFO    ] network               PeerDiscovery stopped
-22:10:32 [INFO    ] network               ChatTransport stopping...
-22:10:32 [DEBUG   ] network               Chat listen loop ended
-22:10:32 [INFO    ] network               ChatTransport stopped
-22:10:32 [INFO  22:10:32 [DEBUG   ] gui                   Peers list updated: no peers
-22:10:33 [INFO    ] network               New peer discovered: 'mehmet' at 192.168.146.1
-22:10:33 [DEBUG   ] network               HELLO broadcast sent
-22:10:33 [DEBUG   ] __main__              Peers updated: [('mehmet', '192.168.146.1')]
-22:10:33 [DEBUG   ] gui                   Peers list updated: 1 peers online
-22:10:35 [DEBUG   ] network               HELLO broadcast sent
-22:10:37 [DEBUG   ] network               HELLO broadcast sent
-22:10:39 [DEBUG   ] network               HELLO broadcast sent
-22:10:41 [DEBUG   ] network               HELLO broadcast sent
-22:10:43 [DEBUG   ] network               HELLO broadcast sent
-22:10:45 [DEBUG   ] network               HELLO broadcast sent
-22:10:47 [DEBUG   ] network               HELLO broadcast sent
-22:10:49 [DEBUG   ] network               HELLO broadcast sent
-22:10:51 [DEBUG   ] network               HELLO broadcast sent
-22:10:53 [DEBUG   ] network               HELLO broadcast sent
-22:10:55 [DEBUG   ] network               HELLO broadcast sent
-22:10:57 [DEBUG   ] network               HELLO broadcast sent
-22:10:59 [DEBUG   ] network               HELLO broadcast sent
-22:11:01 [DEBUG   ] network               HELLO broadcast sent
-22:11:03 [DEBUG   ] network               HELLO broadcast sent
-22:11:05 [DEBUG   ] network               HELLO broadcast sent
-22:11:07 [DEBUG   ] network               HELLO broadcast sent
-22:11:09 [DEBUG   ] network               HELLO broadcast sent
-22:11:11 [DEBUG   ] network               HELLO broadcast sent
-22:11:13 [INFO    ] network               New peer discovered: 'mehmet' at 172.23.144.1
-22:11:13 [DEBUG   ] network               HELLO broadcast sent
-22:11:13 [DEBUG   ] __main__              Peers updated: [('mehmet', '192.168.146.1'), ('mehmet', '172.23.144.1')]
-22:11:13 [DEBUG   ] gui                   Peers list updated: 2 peers online
-22:11:15 [DEBUG   ] network               HELLO broadcast sent
-22:11:17 [DEBUG   ] network               HELLO broadcast sent
-22:11:19 [DEBUG   ] network               HELLO broadcast sent
-22:11:21 [DEBUG   ] network               HELLO broadcast sent
-22:11:23 [DEBUG   ] network               HELLO broadcast sent
-22:11:25 [INFO    ] network               Peer timed out: 'mehmet' at 172.23.144.1
-22:11:25 [DEBUG   ] __main__              Peers updated: [('mehmet', '192.168.146.1')]
-22:11:25 [DEBUG   ] gui                   Peers list updated: 1 peers online
-22:11:25 [DEBUG   ] network               HELLO broadcast sent
-22:11:27 [DEBUG   ] network               HELLO broadcast sent
-22:11:29 [DEBUG   ] network               HELLO broadcast sent
-22:11:31 [DEBUG   ] network               HELLO broadcast sent
-22:11:33 [DEBUG   ] network               HELLO broadcast sent
-22:11:35 [INFO    ] network               New peer discovered: 'mehmet' at 172.23.144.1
-22:11:35 [DEBUG   ] network               HELLO broadcast sent
-22:11:35 [DEBUG   ] __main__              Peers updated: [('mehmet', '192.168.146.1'), ('mehmet', '172.23.144.1')]
-22:11:35 [DEBUG   ] gui                   Peers list updated: 2 peers online
-22:11:37 [DEBUG   ] network               HELLO broadcast sent
-22:11:38 [INFO    ] gui                   Window close requested — shutting down
-22:11:38 [INFO    ] __main__              Shutdown initiated — stopping all services
-22:11:38 [INFO    ] network               PeerDiscovery stopping...
-22:11:38 [INFO    ] network               Peer left: 'mehmet' at 192.168.146.1
-22:11:38 [DEBUG   ] network               BYE packet sent
-22:11:38 [INFO    ] network               PeerDiscovery stopped
-22:11:38 [INFO    ] network               ChatTransport stopping...
-22:11:38 [DEBUG   ] network               Chat listen loop ended
-22:11:38 [INFO    ] network               ChatTransport stopped
-22:11:38 [INFO    ] network               VoiceTransport stopping...
-22:11:38 [DEBUG   ] network               Voice listen loop ended
-22:11:38 [INFO    ] network               VoiceTransport stopped
-22:11:38 [INFO    ] audio_engine          AudioEngine shutting down...
-22:11:38 [DEBUG   ] audio_engine          stop_capture called but not capturing, ignoring
-22:11:38 [INFO    ] audio_engine          Playback stream closed
-22:11:38 [INFO    ] audio_engine          AudioEngine shutdown complete
-22:11:38 [INFO    ] __main__              All services stopped successfully
-22:11:38 [INFO    ] gui                   Tkinter main loop exited
-22:11:38 [INFO    ] __main__              Application exited
+23:06:47 [INFO    ] audio_engine          Varsayılan giriş cihazı: Mikrofon (Razer BlackShark V2 P
+23:06:47 [INFO    ] audio_engine          Varsayılan çıkış cihazı: Hoparlör (Razer BlackShark V2 P
+23:06:47 [INFO    ] audio_engine          Çalma akışı açıldı ve başlatıldı (jitter buffer ile)
+23:06:47 [INFO    ] __main__              SohbetAktarımı başlatılıyor...
+23:06:47 [INFO    ] network               Tespit edilen yerel IP'ler: {'192.168.114.1', '192.168.1.110', '192.168.146.1', '172.23.144.1', '127.0.0.1'}
+23:06:47 [INFO    ] network               Yayın adresleri: ['<broadcast>', '192.168.146.255', '192.168.114.255', '192.168.1.255', '172.23.144.255']
+23:06:47 [INFO    ] network               SohbetAktarımı 'sa' kullanıcısı için başlatıldı
+23:06:47 [INFO    ] __main__              Arayüz başlatılıyor...
+23:06:47 [DEBUG   ] gui                   Arayüz düzeni başarıyla oluşturuldu
+23:06:47 [DEBUG   ] gui                   Tuş bağlamaları ayarlandı (Bas-Konuş için Shift+V)
+23:06:47 [INFO    ] gui                   Arayüz 'sa' kullanıcısı için başlatıldı
+23:06:47 [INFO    ] __main__              EşKeşfi başlatılıyor...
+23:06:47 [INFO    ] network               Tespit edilen yerel IP'ler: {'192.168.114.1', '192.168.1.110', '192.168.146.1', '172.23.144.1', '127.0.0.1'}
+23:06:47 [INFO    ] network               Yayın adresleri: ['<broadcast>', '192.168.146.255', '192.168.114.255', '192.168.1.255', '172.23.144.255']
+23:06:47 [INFO    ] network               EşKeşfi 'sa' kullanıcısı için başlatıldı
+23:06:47 [INFO    ] __main__              Tüm ağ servisleri başlatılıyor...
+23:06:47 [DEBUG   ] network               UDP soket 50000 portuna bağlandı
+23:06:47 [DEBUG   ] network               Keşif yayın döngüsü başladı
+23:06:47 [DEBUG   ] network               Keşif dinleme döngüsü başladı
+23:06:47 [DEBUG   ] network               Eş temizleme döngüsü başladı
+23:06:47 [INFO    ] network               EşKeşfi 50000 portunda başlatıldı
+23:06:47 [DEBUG   ] network               UDP soket 50001 portuna bağlandı
+23:06:47 [DEBUG   ] network               Sohbet dinleme döngüsü başladı
+23:06:47 [INFO    ] network               SohbetAktarımı 50001 portunda başlatıldı
+23:06:47 [DEBUG   ] network               UDP soket 50002 portuna bağlandı
+23:06:47 [DEBUG   ] network               Ses dinleme döngüsü başladı
+23:06:47 [INFO    ] network               SesAktarımı 50002 portunda başlatıldı
+23:06:47 [INFO    ] __main__              Tüm servisler başarıyla başlatıldı
+23:06:47 [INFO    ] __main__              Arayüz ana döngüsüne giriliyor
+23:06:47 [INFO    ] gui                   Tkinter ana döngüsü başlatılıyor
+23:06:59 [INFO    ] network               Yeni eş keşfedildi: 'ahmet' - 192.168.1.104
+23:06:59 [DEBUG   ] __main__              Eşler güncellendi: [('ahmet', '192.168.1.104')]
+23:06:59 [DEBUG   ] gui                   Eş listesi güncellendi: 1 eş çevrimiçi
+23:07:10 [INFO    ] gui                   Bas-Konuş etkinleştirildi (Shift+V basıldı)
+23:07:10 [INFO    ] audio_engine          Mikrofon yakalama başladı (Bas-Konuş aktif)
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [INFO    ] gui                   Bas-Konuş devre dışı bırakıldı (V bırakıldı)
+23:07:10 [INFO    ] audio_engine          Mikrofon yakalama durdu (Bas-Konuş bırakıldı)
+23:07:10 [INFO    ] gui                   Bas-Konuş etkinleştirildi (Shift+V basıldı)
+23:07:10 [INFO    ] audio_engine          Mikrofon yakalama başladı (Bas-Konuş aktif)
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:10 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:11 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:12 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:12 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:12 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:12 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:12 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:12 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:12 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:12 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:12 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:12 [INFO    ] gui                   Bas-Konuş devre dışı bırakıldı (V bırakıldı)
+23:07:12 [INFO    ] audio_engine          Mikrofon yakalama durdu (Bas-Konuş bırakıldı)
+23:07:18 [INFO    ] gui                   Bas-Konuş etkinleştirildi (Shift+V basıldı)
+23:07:18 [INFO    ] audio_engine          Mikrofon yakalama başladı (Bas-Konuş aktif)
+23:07:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:19 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:20 [INFO    ] gui                   Bas-Konuş devre dışı bırakıldı (V bırakıldı)
+23:07:20 [INFO    ] audio_engine          Mikrofon yakalama durdu (Bas-Konuş bırakıldı)
+23:07:21 [INFO    ] gui                   Bas-Konuş etkinleştirildi (Shift+V basıldı)
+23:07:21 [INFO    ] audio_engine          Mikrofon yakalama başladı (Bas-Konuş aktif)
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:23 [INFO    ] gui                   Bas-Konuş devre dışı bırakıldı (V bırakıldı)
+23:07:23 [INFO    ] audio_engine          Mikrofon yakalama durdu (Bas-Konuş bırakıldı)
+23:07:24 [INFO    ] gui                   Bas-Konuş etkinleştirildi (Shift+V basıldı)
+23:07:24 [INFO    ] audio_engine          Mikrofon yakalama başladı (Bas-Konuş aktif)
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:07:25 [INFO    ] gui                   Bas-Konuş devre dışı bırakıldı (V bırakıldı)
+23:07:25 [INFO    ] audio_engine          Mikrofon yakalama durdu (Bas-Konuş bırakıldı)
+23:07:52 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:52 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:52 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:52 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:52 [DEBUG   ] audio_engine          JitterBuffer çalmaya başladı (4 paket birikti)
+23:07:52 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:52 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:52 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:52 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:52 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:52 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:52 [DEBUG   ] audio_engine          JitterBuffer tükendi, yeniden birikme bekleniyor
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] audio_engine          JitterBuffer çalmaya başladı (4 paket birikti)
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:55 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:56 [DEBUG   ] audio_engine          JitterBuffer tükendi, yeniden birikme bekleniyor
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] audio_engine          JitterBuffer çalmaya başladı (4 paket birikti)
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:57 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] crypto_utils          519 bayt şifresi çözüldü -> 491 bayt
+23:07:58 [DEBUG   ] audio_engine          JitterBuffer tükendi, yeniden birikme bekleniyor
+23:08:01 [INFO    ] gui                   Bas-Konuş etkinleştirildi (Shift+V basıldı)
+23:08:01 [INFO    ] audio_engine          Mikrofon yakalama başladı (Bas-Konuş aktif)
+23:08:01 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:01 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:01 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:01 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:01 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:01 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:02 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:03 [INFO    ] gui                   Bas-Konuş devre dışı bırakıldı (V bırakıldı)
+23:08:03 [INFO    ] audio_engine          Mikrofon yakalama durdu (Bas-Konuş bırakıldı)
+23:08:04 [INFO    ] gui                   Bas-Konuş etkinleştirildi (Shift+V basıldı)
+23:08:04 [INFO    ] audio_engine          Mikrofon yakalama başladı (Bas-Konuş aktif)
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:04 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:05 [INFO    ] gui                   Bas-Konuş devre dışı bırakıldı (V bırakıldı)
+23:08:05 [INFO    ] audio_engine          Mikrofon yakalama durdu (Bas-Konuş bırakıldı)
+23:08:17 [INFO    ] gui                   Bas-Konuş etkinleştirildi (Shift+V basıldı)
+23:08:17 [INFO    ] audio_engine          Mikrofon yakalama başladı (Bas-Konuş aktif)
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:17 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:18 [INFO    ] gui                   Bas-Konuş devre dışı bırakıldı (V bırakıldı)
+23:08:18 [INFO    ] audio_engine          Mikrofon yakalama durdu (Bas-Konuş bırakıldı)
+23:08:21 [INFO    ] gui                   Bas-Konuş etkinleştirildi (Shift+V basıldı)
+23:08:21 [INFO    ] audio_engine          Mikrofon yakalama başladı (Bas-Konuş aktif)
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:21 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:22 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [INFO    ] gui                   Bas-Konuş devre dışı bırakıldı (V bırakıldı)
+23:08:23 [INFO    ] audio_engine          Mikrofon yakalama durdu (Bas-Konuş bırakıldı)
+23:08:23 [INFO    ] gui                   Bas-Konuş etkinleştirildi (Shift+V basıldı)
+23:08:23 [INFO    ] audio_engine          Mikrofon yakalama başladı (Bas-Konuş aktif)
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:23 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:24 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:25 [INFO    ] gui                   Bas-Konuş devre dışı bırakıldı (V bırakıldı)
+23:08:25 [INFO    ] audio_engine          Mikrofon yakalama durdu (Bas-Konuş bırakıldı)
+23:08:26 [INFO    ] gui                   Bas-Konuş etkinleştirildi (Shift+V basıldı)
+23:08:26 [INFO    ] audio_engine          Mikrofon yakalama başladı (Bas-Konuş aktif)
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:26 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:27 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [DEBUG   ] crypto_utils          488 bayt şifrelendi -> 516 bayt
+23:08:28 [INFO    ] gui                   Bas-Konuş devre dışı bırakıldı (V bırakıldı)
+23:08:28 [INFO    ] audio_engine          Mikrofon yakalama durdu (Bas-Konuş bırakıldı)
+23:09:27 [INFO    ] network               Eş ayrıldı: 'ahmet' - 192.168.1.104
+23:09:27 [DEBUG   ] __main__              Eşler güncellendi: []
+23:09:27 [DEBUG   ] gui                   Eş listesi güncellendi: eş yok
+23:09:27 [DEBUG   ] __main__              Eşler güncellendi: []
+23:09:27 [DEBUG   ] gui                   Eş listesi güncellendi: eş yok
+23:09:30 [INFO    ] gui                   Pencere kapatma isteği — kapatılıyor
+23:09:30 [INFO    ] __main__              Kapatma başlatıldı — tüm servisler durduruluyor
+23:09:30 [INFO    ] network               EşKeşfi durduruluyor...
+23:09:30 [DEBUG   ] network               Keşif dinleme döngüsü sona erdi
+23:09:30 [DEBUG   ] network               HOŞÇAKAL paketi gönderildi
+23:09:30 [INFO    ] network               EşKeşfi durduruldu
+23:09:30 [INFO    ] network               SohbetAktarımı durduruluyor...
+23:09:30 [DEBUG   ] network               Sohbet dinleme döngüsü sona erdi
+23:09:30 [INFO    ] network               SohbetAktarımı durduruldu
+23:09:30 [INFO    ] network               SesAktarımı durduruluyor...
+23:09:30 [DEBUG   ] network               Ses dinleme döngüsü sona erdi
+23:09:30 [INFO    ] network               SesAktarımı durduruldu
+23:09:30 [INFO    ] audio_engine          SesMotoru kapatılıyor...
+23:09:30 [DEBUG   ] audio_engine          stop_capture çağrıldı ama yakalama yapılmıyor, atlanıyor
+23:09:30 [INFO    ] audio_engine          Çalma akışı kapatıldı
+23:09:30 [INFO    ] audio_engine          SesMotoru kapatma tamamlandı
+23:09:30 [INFO    ] __main__              Tüm servisler başarıyla durduruldu
+23:09:30 [INFO    ] gui                   Tkinter ana döngüsü sona erdi
+23:09:30 [INFO    ] __main__              Uygulama sonlandı
