@@ -3,3 +3,4 @@ numpy
 cryptography
 pystray
 Pillow
+av
