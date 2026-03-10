@@ -41,8 +41,8 @@ def main():
             log.info("Kullanıcı giriş penceresini iptal etti — çıkılıyor")
             sys.exit(0)
 
-        username, rooms_passwords, minimize_to_tray_enabled = dialog.result
-        log.info(f"Kullanıcı '{username}' bilgilerini girdi (Tray: {minimize_to_tray_enabled})")
+        username, rooms_passwords = dialog.result
+        log.info(f"Kullanıcı '{username}' bilgilerini girdi")
     except Exception as e:
         log.error(f"Giriş penceresinde hata: {e}", exc_info=True)
         sys.exit(1)
@@ -104,7 +104,6 @@ def main():
         gui = WalkieTalkieGUI(
             username=username,
             active_rooms=active_rooms,
-            minimize_to_tray_enabled=minimize_to_tray_enabled,
             on_send_chat=lambda text, room_id: chat_transport.send_message(text, room_id),
             on_ptt_start=lambda room_id: audio_engine.start_capture(room_id),
             on_ptt_stop=lambda: audio_engine.stop_capture(),
@@ -124,6 +123,7 @@ def main():
 
         def on_chat_received(sender, message, room_id):
             try:
+                # append_chat → add_chat_message zinciri ile ekrana yansır
                 gui.append_chat(sender, message, room_id, is_self=False)
                 log.debug(f"'{sender}' adresinden sohbet alındı: '{message[:50]}'")
             except Exception as e:
@@ -166,7 +166,6 @@ def main():
     gui.add_system_message(f"{username} olarak şu kanallara bağlandınız: {[ROOM_NAMES[r] for r in active_rooms]}")
 
     log.info("Arayüz ana döngüsüne giriliyor")
-    # Arayüz ana döngüsünü başlat (pencere kapanana kadar bloke eder)
     gui.mainloop()
 
     log.info("Uygulama sonlandı")
