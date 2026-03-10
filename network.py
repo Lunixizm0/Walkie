@@ -105,15 +105,25 @@ def _make_broadcast_socket(port: int, bind: bool = False) -> socket.socket:
 class PeerDiscovery:
     """UDP yayını ile LAN üzerindeki eşleri keşfeder."""
 
-    def __init__(self, username: str, on_peers_changed=None):
+    def __init__(self, username: str, active_room_id: int = 0, on_peers_changed=None):
         self.username = username
+        self.active_room_id = active_room_id
         self.local_ips = _get_all_local_ips()
         self.broadcast_addrs = _get_broadcast_addresses()
         self.peers: dict[str, tuple[str, float]] = {}  # ip -> (kullanıcı_adı, son_görülme)
         self.on_peers_changed = on_peers_changed
         self._running = False
         self._lock = threading.Lock()
-        log.info(f"EşKeşfi '{username}' kullanıcısı için başlatıldı")
+        log.info(f"EşKeşfi '{username}' kullanıcısı için başlatıldı (Oda: {active_room_id})")
+
+    def set_active_room(self, room_id: int):
+        if self.active_room_id != room_id:
+            self.active_room_id = room_id
+            with self._lock:
+                self.peers.clear()
+            if self.on_peers_changed:
+                self.on_peers_changed([])
+            log.debug(f"EşKeşfi aktif oda değiştirildi: {room_id}")
 
     def start(self):
         try:
@@ -138,7 +148,8 @@ class PeerDiscovery:
         self._running = False
         # HOŞÇAKAL paketi gönder
         try:
-            payload = MSG_BYE + self.username.encode("utf-8")
+            # MSG_BYE + room_id + username
+            payload = MSG_BYE + struct.pack("B", self.active_room_id) + self.username.encode("utf-8")
             for addr in self.broadcast_addrs:
                 try:
                     self._send_sock.sendto(payload, (addr, DISCOVERY_PORT))
@@ -165,7 +176,8 @@ class PeerDiscovery:
         log.debug("Keşif yayın döngüsü başladı")
         while self._running:
             try:
-                payload = MSG_HELLO + self.username.encode("utf-8")
+                # MSG_HELLO + room_id + username
+                payload = MSG_HELLO + struct.pack("B", self.active_room_id) + self.username.encode("utf-8")
                 # Tüm yayın adreslerine gönder
                 for addr in self.broadcast_addrs:
                     try:
@@ -189,7 +201,11 @@ class PeerDiscovery:
                     continue
 
                 if data[0:1] == MSG_HELLO:
-                    name = data[1:].decode("utf-8", errors="replace")
+                    if len(data) < 2: continue
+                    room_id = data[1]
+                    if room_id != self.active_room_id: continue
+                    
+                    name = data[2:].decode("utf-8", errors="replace")
                     with self._lock:
                         was_new = ip not in self.peers
                         self.peers[ip] = (name, time.time())
@@ -199,6 +215,10 @@ class PeerDiscovery:
                             self.on_peers_changed(self._get_peer_list())
 
                 elif data[0:1] == MSG_BYE:
+                    if len(data) < 2: continue
+                    room_id = data[1]
+                    if room_id != self.active_room_id: continue
+                    
                     with self._lock:
                         if ip in self.peers:
                             name = self.peers[ip][0]
@@ -243,16 +263,22 @@ class PeerDiscovery:
 
 
 class ChatTransport:
-    """UDP yayını ile şifreli metin sohbet mesajları gönderir ve alır."""
+    """UDP yayını ile şifreli metin sohbet mesajları gönderir ve alır. Birden fazla odayı destekler."""
 
-    def __init__(self, username: str, encryption_key: bytes, on_message=None):
+    def __init__(self, username: str, encryption_keys: dict[int, bytes], active_room_id: int = 0, on_message=None):
         self.username = username
-        self.key = encryption_key
+        self.keys = encryption_keys  # {oda_id: anahtar_baytları}
+        self.active_room_id = active_room_id
         self.local_ips = _get_all_local_ips()
         self.broadcast_addrs = _get_broadcast_addresses()
-        self.on_message = on_message  # geri çağırma(gönderen_adı, mesaj_metni)
+        self.on_message = on_message  # geri çağırma(gönderen_adı, mesaj_metni, oda_id)
         self._running = False
-        log.info(f"SohbetAktarımı '{username}' kullanıcısı için başlatıldı")
+        log.info(f"SohbetAktarımı '{username}' kullanıcısı için başlatıldı (Oda: {active_room_id})")
+
+    def set_active_room(self, room_id: int):
+        if room_id in self.keys:
+            self.active_room_id = room_id
+            log.debug(f"SohbetAktarımı aktif oda değiştirildi: {room_id}")
 
     def start(self):
         try:
@@ -280,21 +306,31 @@ class ChatTransport:
             log.debug(f"Sohbet alım soketi kapatılırken hata: {e}")
         log.info("SohbetAktarımı durduruldu")
 
-    def send_message(self, text: str):
-        """Şifreli sohbet mesajı yayınlar."""
+    def send_message(self, text: str, room_id: int):
+        """Belirtilen odaya şifreli sohbet mesajı yayınlar."""
+        if room_id not in self.keys:
+            log.warning(f"Sohbet mesajı gönderilemedi: {room_id} numaralı oda için anahtar yok")
+            return
+            
         try:
             # Paketleme: kullanıcı_adı_uzunluğu (1 bayt) + kullanıcı_adı + mesaj
             name_bytes = self.username.encode("utf-8")[:255]
             msg_bytes = text.encode("utf-8")
             payload = struct.pack("B", len(name_bytes)) + name_bytes + msg_bytes
-            encrypted = encrypt(payload, self.key)
-            packet = MSG_CHAT + encrypted
+            
+            # Seçilen odanın anahtarıyla şifrele
+            encrypted = encrypt(payload, self.keys[room_id])
+            
+            # Paket: MSG_CHAT (1 bayt) + ODA_ID (1 bayt) + Şifreli Veri
+            room_byte = struct.pack("B", room_id)
+            packet = MSG_CHAT + room_byte + encrypted
+            
             for addr in self.broadcast_addrs:
                 try:
                     self._send_sock.sendto(packet, (addr, CHAT_PORT))
                 except Exception:
                     pass
-            log.debug(f"Sohbet mesajı gönderildi: '{text[:50]}' ({len(packet)} bayt)")
+            log.debug(f"Sohbet mesajı gönderildi (Oda {room_id}): '{text[:50]}' ({len(packet)} bayt)")
         except Exception as e:
             log.error(f"Sohbet mesajı gönderilemedi: {e}", exc_info=True)
 
@@ -308,17 +344,31 @@ class ChatTransport:
                     continue
 
                 if data[0:1] == MSG_CHAT:
-                    encrypted = data[1:]
-                    plaintext = decrypt(encrypted, self.key)
-                    if plaintext is None:
-                        log.debug(f"{ip} adresinden sohbet alındı ama şifre çözülemedi (yanlış anahtar?)")
+                    if len(data) < 3:
                         continue
+                        
+                    room_id = data[1]
+                    if room_id != self.active_room_id:
+                        continue
+                        
+                    # Odaya abone miyiz kontrol et (zaten active_room ise aboneyizdir ama emin olalım)
+                    if room_id not in self.keys:
+                        continue
+                        
+                    encrypted = data[2:]
+                    plaintext = decrypt(encrypted, self.keys[room_id])
+                    
+                    if plaintext is None:
+                        log.debug(f"{ip} adresinden sohbet alındı ama şifre çözülemedi (Oda {room_id} yanlış anahtar?)")
+                        continue
+                        
                     name_len = plaintext[0]
                     sender = plaintext[1:1 + name_len].decode("utf-8", errors="replace")
                     message = plaintext[1 + name_len:].decode("utf-8", errors="replace")
-                    log.debug(f"'{sender}' ({ip}) adresinden sohbet alındı: '{message[:50]}'")
+                    log.debug(f"'{sender}' ({ip}) adresinden sohbet alındı (Oda {room_id}): '{message[:50]}'")
+                    
                     if self.on_message:
-                        self.on_message(sender, message)
+                        self.on_message(sender, message, room_id)
             except socket.timeout:
                 continue
             except Exception as e:
@@ -330,16 +380,22 @@ class ChatTransport:
 
 
 class VoiceTransport:
-    """UDP yayını ile şifreli ses çerçeveleri gönderir ve alır."""
+    """UDP yayını ile şifreli ses çerçeveleri gönderir ve alır. Birden fazla odayı destekler."""
 
-    def __init__(self, username: str, encryption_key: bytes, on_voice=None):
+    def __init__(self, username: str, encryption_keys: dict[int, bytes], active_room_id: int = 0, on_voice=None):
         self.username = username
-        self.key = encryption_key
+        self.keys = encryption_keys  # {oda_id: anahtar_baytları}
+        self.active_room_id = active_room_id
         self.local_ips = _get_all_local_ips()
         self.broadcast_addrs = _get_broadcast_addresses()
-        self.on_voice = on_voice  # geri çağırma(gönderen_adı, ses_baytları)
+        self.on_voice = on_voice  # geri çağırma(gönderen_adı, ses_baytları, oda_id)
         self._running = False
-        log.info(f"SesAktarımı '{username}' kullanıcısı için başlatıldı")
+        log.info(f"SesAktarımı '{username}' kullanıcısı için başlatıldı (Oda: {active_room_id})")
+
+    def set_active_room(self, room_id: int):
+        if room_id in self.keys:
+            self.active_room_id = room_id
+            log.debug(f"SesAktarımı aktif oda değiştirildi: {room_id}")
 
     def start(self):
         try:
@@ -367,13 +423,20 @@ class VoiceTransport:
             log.debug(f"Ses alım soketi kapatılırken hata: {e}")
         log.info("SesAktarımı durduruldu")
 
-    def send_voice(self, audio_data: bytes):
-        """Şifreli ses çerçevesi yayınlar."""
+    def send_voice(self, audio_data: bytes, room_id: int):
+        """Belirtilen odaya şifreli ses çerçevesi yayınlar."""
+        if room_id not in self.keys:
+            return
+            
         try:
             name_bytes = self.username.encode("utf-8")[:255]
             payload = struct.pack("B", len(name_bytes)) + name_bytes + audio_data
-            encrypted = encrypt(payload, self.key)
-            packet = MSG_VOICE + encrypted
+            
+            encrypted = encrypt(payload, self.keys[room_id])
+            
+            room_byte = struct.pack("B", room_id)
+            packet = MSG_VOICE + room_byte + encrypted
+            
             for addr in self.broadcast_addrs:
                 try:
                     self._send_sock.sendto(packet, (addr, VOICE_PORT))
@@ -392,15 +455,29 @@ class VoiceTransport:
                     continue
 
                 if data[0:1] == MSG_VOICE:
-                    encrypted = data[1:]
-                    plaintext = decrypt(encrypted, self.key)
+                    if len(data) < 3:
+                        continue
+                        
+                    room_id = data[1]
+                    
+                    if room_id != self.active_room_id:
+                        continue
+                        
+                    if room_id not in self.keys:
+                        continue
+                        
+                    encrypted = data[2:]
+                    plaintext = decrypt(encrypted, self.keys[room_id])
+                    
                     if plaintext is None:
                         continue
+                        
                     name_len = plaintext[0]
                     sender = plaintext[1:1 + name_len].decode("utf-8", errors="replace")
                     audio = plaintext[1 + name_len:]
+                    
                     if self.on_voice:
-                        self.on_voice(sender, audio)
+                        self.on_voice(sender, audio, room_id)
             except socket.timeout:
                 continue
             except Exception as e:

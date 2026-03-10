@@ -1,7 +1,7 @@
 """
 Walkie-Talkie uygulaması için ses motoru.
 Mikrofon yakalama ve hoparlör çalma için sounddevice kullanır.
-IMA ADPCM codec, gürültü bastırma ve jitter buffer içerir.
+IMA ADPCM codec ve jitter buffer içerir.
 """
 
 import collections
@@ -17,11 +17,17 @@ log = logging.getLogger(__name__)
 SAMPLE_RATE = 48000   # 48 kHz - yüksek kalite
 CHANNELS = 1          # Mono
 DTYPE = "int16"       # 16-bit PCM
-BLOCK_SIZE = 960      # tampon başına çerçeve (~20ms, 48kHz'de)
+
+# Kesik kesik gelmeyi önlemek için çerçeveyi 40ms yapıyoruz (1920 örnek)
+FRAME_DURATION_MS = 40
+BLOCK_SIZE = int(SAMPLE_RATE * (FRAME_DURATION_MS / 1000.0))
 
 # Jitter buffer ayarları
-JITTER_BUFFER_MIN = 3   # çalmaya başlamadan önce biriktirilecek minimum paket
-JITTER_BUFFER_MAX = 15  # maksimum tampon derinliği (taşma koruması)
+JITTER_BUFFER_MIN = 3   # 120ms gecikme ile başla 
+JITTER_BUFFER_MAX = 20  # maksimum 800ms tampon derinliği
+
+# VAD (Sesle Aktivasyon) Ayarları
+VAD_RMS_THRESHOLD = 50  # Bu değerin altındaki sesler sessizlik sayılır
 
 
 class JitterBuffer:
@@ -73,35 +79,26 @@ class JitterBuffer:
 class AudioEngine:
     """
     Mikrofon yakalama ve ses çalmayı yönetir.
-    IMA ADPCM codec, gürültü bastırma ve jitter buffer içerir.
+    IMA ADPCM codec ve jitter buffer içerir.
     """
 
     def __init__(self, on_audio_captured=None):
         """
         Argümanlar:
-            on_audio_captured: geri çağırma(kodlanmış_baytlar) - her yakalanan çerçevede çağrılır
+            on_audio_captured: geri çağırma(kodlanmış_baytlar, oda_id) - her yakalanan çerçevede çağrılır
         """
         self.on_audio_captured = on_audio_captured
         self._capturing = False
         self._capture_stream = None
         self._playback_stream = None
         self._lock = threading.Lock()
+        self.active_room_id = 0  # Varsayılan gönderim odası
+        self.vad_enabled = False # Sesle aktivasyon varsayılan kapalı
 
         # Jitter buffer
         self._jitter_buffer = JitterBuffer()
 
         log.info(f"SesMotoru başlatılıyor (oran={SAMPLE_RATE}, kanal={CHANNELS}, tip={DTYPE}, blok={BLOCK_SIZE})")
-
-        # Mevcut cihazları listele
-        try:
-            devices = sd.query_devices()
-            log.debug(f"Mevcut ses cihazları:\n{devices}")
-            default_input = sd.query_devices(kind='input')
-            default_output = sd.query_devices(kind='output')
-            log.info(f"Varsayılan giriş cihazı: {default_input['name']}")
-            log.info(f"Varsayılan çıkış cihazı: {default_output['name']}")
-        except Exception as e:
-            log.warning(f"Ses cihazları sorgulanamadı: {e}")
 
         # Çalma akışı — jitter buffer'dan veri çeken callback ile
         try:
@@ -118,12 +115,13 @@ class AudioEngine:
             log.error(f"Çalma cihazı açılamadı: {e}", exc_info=True)
             self._playback_stream = None
 
-    def start_capture(self):
-        """Mikrofondan ses yakalamayı başlatır."""
+    def start_capture(self, room_id: int):
+        """Mikrofondan ses yakalamayı başlatır ve belirtilen odaya gönderir."""
         if self._capturing:
             log.debug("start_capture çağrıldı ama zaten yakalama yapılıyor, atlanıyor")
             return
         self._capturing = True
+        self.active_room_id = room_id
         try:
             self._capture_stream = sd.InputStream(
                 samplerate=SAMPLE_RATE,
@@ -141,7 +139,7 @@ class AudioEngine:
     def stop_capture(self):
         """Mikrofondan ses yakalamayı durdurur."""
         if not self._capturing:
-            log.debug("stop_capture çağrıldı ama yakalama yapılmıyor, atlanıyor")
+            # log.debug("stop_capture çağrıldı ama yakalama yapılmıyor, atlanıyor") # gereksiz log kalabalığı
             return
         self._capturing = False
         try:
@@ -152,6 +150,36 @@ class AudioEngine:
                 log.info("Mikrofon yakalama durdu (Bas-Konuş bırakıldı)")
         except Exception as e:
             log.error(f"Yakalama akışı durdurulurken hata: {e}", exc_info=True)
+
+    def set_vad_enabled(self, enabled: bool, room_id: int = 0):
+        """Sesle aktivasyon modunu açar/kapatır."""
+        self.vad_enabled = enabled
+        if enabled:
+            # VAD açıksa mikrofonu sürekli açık tut
+            self.start_capture(room_id)
+        else:
+            # VAD kapandıysa mikrofonu kapat (Shift+V kendi açacaktır)
+            self.stop_capture()
+
+    def play_beep(self, frequency: float, duration_ms: int):
+        """Uygulama içi bildirim sesleri için basit sinüs dalgası üretir ve çalar."""
+        if self._playback_stream is None:
+            return
+        try:
+            t = np.linspace(0, duration_ms / 1000.0, int(SAMPLE_RATE * (duration_ms / 1000.0)), endpoint=False)
+            waveform = 0.05 * np.sin(2 * np.pi * frequency * t) # Ses seviyesini %5'e çok kıstık
+            audio_data = (waveform * 32767).astype(np.int16)
+            
+            # Blok boyutuna bölerek jitter buffer'a at
+            for i in range(0, len(audio_data), BLOCK_SIZE):
+                chunk = audio_data[i:i + BLOCK_SIZE]
+                if len(chunk) < BLOCK_SIZE:
+                    padded = np.zeros(BLOCK_SIZE, dtype=np.int16)
+                    padded[:len(chunk)] = chunk
+                    chunk = padded
+                self._jitter_buffer.push(chunk.reshape(-1, CHANNELS))
+        except Exception as e:
+            log.error(f"Bip sesi üretilemedi: {e}", exc_info=True)
 
     def play_audio(self, encoded_bytes: bytes):
         """
@@ -206,11 +234,18 @@ class AudioEngine:
             pcm_array = indata[:, 0].copy()  # mono
             pcm_array = pcm_array.astype(np.int16)
 
+            # --- Voice Activity Detection (VAD) ---
+            if self.vad_enabled:
+                # RMS (Root Mean Square) enerji seviyesini hesapla
+                rms = np.sqrt(np.mean(np.square(pcm_array.astype(np.float32))))
+                if rms < VAD_RMS_THRESHOLD:
+                    return # Ses eşiğin altında, gönderme
+
             # ADPCM ile kodla
             encoded = audio_codec.encode(pcm_array)
 
-            # Geri çağırma ile gönder
-            self.on_audio_captured(encoded)
+            # Geri çağırma ile gönder (hangi odaya gideceğini de belirt)
+            self.on_audio_captured(encoded, self.active_room_id)
         except Exception as e:
             log.error(f"Yakalama geri çağırmasında hata: {e}", exc_info=True)
 

@@ -1,2 +1,5 @@
 walkie_debug.log
 .stfolder/**
+.venv/**
+__pycache__/**
+*.pyc

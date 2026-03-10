@@ -14,6 +14,14 @@ log = logging.getLogger(__name__)
 # Sabit tuz: aynı parolayı kullanan tüm istemciler aynı anahtarı türetir
 _FIXED_SALT = b"walkie-talkie-lan-salt-2026"
 
+# Genel oda için sabit anahtar (şifresiz odanın herkes tarafından dinlenebilmesi için)
+_GENEL_KEY = b"ortak_genel_oda_anahtari_2026_!!"  # 32 byte
+
+
+def get_genel_key() -> bytes:
+    """Genel (şifresiz) oda için kullanılacak sabit 32 baytlık AES anahtarını döndürür."""
+    return _GENEL_KEY
+
 
 def derive_key(passphrase: str) -> bytes:
     """PBKDF2 kullanarak paroladan 256-bit AES anahtarı türetir."""
