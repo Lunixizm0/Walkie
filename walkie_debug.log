@@ -1,0 +1,146 @@
+22:10:16 [INFO    ] __main__              ============================================================
+22:10:16 [INFO    ] __main__              Walkie-Talkie LAN Application starting up
+22:10:16 [INFO    ] __main__              ============================================================
+22:10:17 [INFO    ] gui                   StartupDialog displayed
+22:10:24 [INFO    ] gui                   User joined as 'hasan'
+22:10:24 [INFO    ] __main__              User 'hasan' entered credentials
+22:10:24 [DEBUG   ] crypto_utils          Deriving encryption key from passphrase (PBKDF2, 100k iterations)
+22:10:24 [INFO    ] crypto_utils          Encryption key derived successfully
+22:10:24 [INFO    ] __main__              Encryption key derived from passphrase
+22:10:24 [INFO    ] __main__              Initializing VoiceTransport...
+22:10:24 [INFO    ] network               Local IP detected: 192.168.1.110
+22:10:24 [INFO    ] network               VoiceTransport initialized for user 'hasan'
+22:10:24 [INFO    ] __main__              Initializing AudioEngine...
+22:10:24 [INFO    ] audio_engine          AudioEngine initializing (rate=16000, channels=1, dtype=int16, block=1024)
+22:10:24 [DEBUG   ] audio_engine          Available audio devices:
+   0 Microsoft Ses Eşleştiricisi - Input, MME (2 in, 0 out)
+>  1 Mikrofon (Razer BlackShark V2 P, MME (1 in, 0 out)
+   2 Microsoft Ses Eşleştiricisi - Output, MME (0 in, 2 out)
+<  3 Hoparlör (Razer BlackShark V2 P, MME (0 in, 2 out)
+   4 3 - LG ULTRAGEAR (AMD High Defi, MME (0 in, 2 out)
+   5 Birincil Ses Yakalama Sürücüsü, Windows DirectSound (2 in, 0 out)
+   6 Mikrofon (Razer BlackShark V2 Pro), Windows DirectSound (1 in, 0 out)
+   7 Birincil Ses Sürücüsü, Windows DirectSound (0 in, 2 out)
+   8 Hoparlör (Razer BlackShark V2 Pro), Windows DirectSound (0 in, 2 out)
+   9 3 - LG ULTRAGEAR (AMD High Definition Audio Device), Windows DirectSound (0 in, 2 out)
+  10 Hoparlör (Razer BlackShark V2 Pro), Windows WASAPI (0 in, 2 out)
+  11 3 - LG ULTRAGEAR (AMD High Definition Audio Device), Windows WASAPI (0 in, 2 out)
+  12 Mikrofon (Razer BlackShark V2 Pro), Windows WASAPI (1 in, 0 out)
+  13 Mikrofon (Razer BlackShark V2 Pro 2.4), Windows WDM-KS (1 in, 0 out)
+  14 Hoparlörler (Razer BlackShark V2 Pro 2.4), Windows WDM-KS (0 in, 2 out)
+  15 Mikrofon (Realtek HD Audio Mic input), Windows WDM-KS (2 in, 0 out)
+  16 Speakers (Realtek HD Audio output), Windows WDM-KS (0 in, 8 out)
+  17 Headphones (Realtek HD Audio 2nd output), Windows WDM-KS (0 in, 2 out)
+  18 Stereo Karışımı (Realtek HD Audio Stereo input), Windows WDM-KS (2 in, 0 out)
+  19 Hat Girişi (Realtek HD Audio Line input), Windows WDM-KS (2 in, 0 out)
+  20 Output (AMD HD Audio DP out #2), Windows WDM-KS (0 in, 2 out)
+22:10:24 [INFO    ] audio_engine          Default input device: Mikrofon (Razer BlackShark V2 P
+22:10:24 [INFO    ] audio_engine          Default output device: Hoparlör (Razer BlackShark V2 P
+22:10:24 [INFO    ] audio_engine          Playback stream opened and started
+22:10:24 [INFO    ] __main__              Initializing ChatTransport...
+22:10:24 [INFO    ] network               Local IP detected: 192.168.1.110
+22:10:24 [INFO    ] network               ChatTransport initialized for user 'hasan'
+22:10:24 [INFO    ] __main__              Initializing GUI...
+22:10:24 [DEBUG   ] gui                   GUI layout built successfully
+22:10:24 [DEBUG   ] gui                   Key bindings set up (Shift+V for PTT)
+22:10:24 [INFO    ] gui                   WalkieTalkieGUI initialized for user 'hasan'
+22:10:24 [INFO    ] __main__              Initializing PeerDiscovery...
+22:10:24 [INFO    ] network               Local IP detected: 192.168.1.110
+22:10:24 [INFO    ] network               PeerDiscovery initialized for user 'hasan' at 192.168.1.110
+22:10:24 [INFO    ] __main__              Starting all network services...
+22:10:24 [DEBUG   ] network               Bound UDP socket to port 50000
+22:10:24 [DEBUG   ] network               Discovery broadcast loop started
+22:10:24 [DEBUG   ] network               Discovery listen loop started
+22:10:24 [DEBUG   ] network               Peer cleanup loop started
+22:10:24 [DEBUG   ] network               HELLO broadcast sent
+22:10:24 [INFO    ] network               PeerDiscovery started on port 50000
+22:10:24 [INFO    ] network               New peer discovered: 'hasan' at 192.168.146.1
+22:10:24 [DEBUG   ] network               Bound UDP socket to port 50001
+22:10:24 [DEBUG   ] network               Chat listen loop started
+22:10:24 [INFO    ] network               ChatTransport started on port 50001
+22:10:24 [DEBUG   ] network               Bound UDP socket to port 50002
+22:10:24 [DEBUG   ] network               Voice listen loop started
+22:10:24 [INFO    ] network               VoiceTransport started on port 50002
+22:10:24 [INFO    ] __main__              All services started successfully
+22:10:24 [INFO    ] __main__              Entering GUI main loop
+22:10:24 [INFO    ] gui                   Starting tkinter main loop
+22:10:24 [DEBUG   ] __main__              Peers updated: [('hasan', '192.168.146.1')]
+22:10:24 [DEBUG   ] gui                   Peers list updated: 1 peers online
+22:10:26 [DEBUG   ] network               HELLO broadcast sent
+22:10:28 [DEBUG   ] network               HELLO broadcast sent
+22:10:30 [DEBUG   ] network               HELLO broadcast sent
+22:10:32 [DEBUG   ] network               HELLO broadcast sent
+22:10:32 [INFO    ] gui                   Window close requested — shutting down
+22:10:32 [INFO    ] __main__              Shutdown initiated — stopping all services
+22:10:32 [INFO    ] network               PeerDiscovery stopping...
+22:10:32 [INFO    ] network               Peer left: 'hasan' at 192.168.146.1
+22:10:32 [DEBUG   ] network               BYE packet sent
+22:10:32 [INFO    ] network               PeerDiscovery stopped
+22:10:32 [INFO    ] network               ChatTransport stopping...
+22:10:32 [DEBUG   ] network               Chat listen loop ended
+22:10:32 [INFO    ] network               ChatTransport stopped
+22:10:32 [INFO  22:10:32 [DEBUG   ] gui                   Peers list updated: no peers
+22:10:33 [INFO    ] network               New peer discovered: 'mehmet' at 192.168.146.1
+22:10:33 [DEBUG   ] network               HELLO broadcast sent
+22:10:33 [DEBUG   ] __main__              Peers updated: [('mehmet', '192.168.146.1')]
+22:10:33 [DEBUG   ] gui                   Peers list updated: 1 peers online
+22:10:35 [DEBUG   ] network               HELLO broadcast sent
+22:10:37 [DEBUG   ] network               HELLO broadcast sent
+22:10:39 [DEBUG   ] network               HELLO broadcast sent
+22:10:41 [DEBUG   ] network               HELLO broadcast sent
+22:10:43 [DEBUG   ] network               HELLO broadcast sent
+22:10:45 [DEBUG   ] network               HELLO broadcast sent
+22:10:47 [DEBUG   ] network               HELLO broadcast sent
+22:10:49 [DEBUG   ] network               HELLO broadcast sent
+22:10:51 [DEBUG   ] network               HELLO broadcast sent
+22:10:53 [DEBUG   ] network               HELLO broadcast sent
+22:10:55 [DEBUG   ] network               HELLO broadcast sent
+22:10:57 [DEBUG   ] network               HELLO broadcast sent
+22:10:59 [DEBUG   ] network               HELLO broadcast sent
+22:11:01 [DEBUG   ] network               HELLO broadcast sent
+22:11:03 [DEBUG   ] network               HELLO broadcast sent
+22:11:05 [DEBUG   ] network               HELLO broadcast sent
+22:11:07 [DEBUG   ] network               HELLO broadcast sent
+22:11:09 [DEBUG   ] network               HELLO broadcast sent
+22:11:11 [DEBUG   ] network               HELLO broadcast sent
+22:11:13 [INFO    ] network               New peer discovered: 'mehmet' at 172.23.144.1
+22:11:13 [DEBUG   ] network               HELLO broadcast sent
+22:11:13 [DEBUG   ] __main__              Peers updated: [('mehmet', '192.168.146.1'), ('mehmet', '172.23.144.1')]
+22:11:13 [DEBUG   ] gui                   Peers list updated: 2 peers online
+22:11:15 [DEBUG   ] network               HELLO broadcast sent
+22:11:17 [DEBUG   ] network               HELLO broadcast sent
+22:11:19 [DEBUG   ] network               HELLO broadcast sent
+22:11:21 [DEBUG   ] network               HELLO broadcast sent
+22:11:23 [DEBUG   ] network               HELLO broadcast sent
+22:11:25 [INFO    ] network               Peer timed out: 'mehmet' at 172.23.144.1
+22:11:25 [DEBUG   ] __main__              Peers updated: [('mehmet', '192.168.146.1')]
+22:11:25 [DEBUG   ] gui                   Peers list updated: 1 peers online
+22:11:25 [DEBUG   ] network               HELLO broadcast sent
+22:11:27 [DEBUG   ] network               HELLO broadcast sent
+22:11:29 [DEBUG   ] network               HELLO broadcast sent
+22:11:31 [DEBUG   ] network               HELLO broadcast sent
+22:11:33 [DEBUG   ] network               HELLO broadcast sent
+22:11:35 [INFO    ] network               New peer discovered: 'mehmet' at 172.23.144.1
+22:11:35 [DEBUG   ] network               HELLO broadcast sent
+22:11:35 [DEBUG   ] __main__              Peers updated: [('mehmet', '192.168.146.1'), ('mehmet', '172.23.144.1')]
+22:11:35 [DEBUG   ] gui                   Peers list updated: 2 peers online
+22:11:37 [DEBUG   ] network               HELLO broadcast sent
+22:11:38 [INFO    ] gui                   Window close requested — shutting down
+22:11:38 [INFO    ] __main__              Shutdown initiated — stopping all services
+22:11:38 [INFO    ] network               PeerDiscovery stopping...
+22:11:38 [INFO    ] network               Peer left: 'mehmet' at 192.168.146.1
+22:11:38 [DEBUG   ] network               BYE packet sent
+22:11:38 [INFO    ] network               PeerDiscovery stopped
+22:11:38 [INFO    ] network               ChatTransport stopping...
+22:11:38 [DEBUG   ] network               Chat listen loop ended
+22:11:38 [INFO    ] network               ChatTransport stopped
+22:11:38 [INFO    ] network               VoiceTransport stopping...
+22:11:38 [DEBUG   ] network               Voice listen loop ended
+22:11:38 [INFO    ] network               VoiceTransport stopped
+22:11:38 [INFO    ] audio_engine          AudioEngine shutting down...
+22:11:38 [DEBUG   ] audio_engine          stop_capture called but not capturing, ignoring
+22:11:38 [INFO    ] audio_engine          Playback stream closed
+22:11:38 [INFO    ] audio_engine          AudioEngine shutdown complete
+22:11:38 [INFO    ] __main__              All services stopped successfully
+22:11:38 [INFO    ] gui                   Tkinter main loop exited
+22:11:38 [INFO    ] __main__              Application exited
