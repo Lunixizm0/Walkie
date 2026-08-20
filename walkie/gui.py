@@ -417,8 +417,8 @@ class WalkieTalkieGUI:
             if not text:
                 return "break"
             self.chat_input.delete(0, "end")
+            self.add_chat_message(self.username, text, is_self=True, room_id=0)
             for rid in self.enabled_rooms:
-                self.add_chat_message(self.username, text, is_self=True, room_id=rid)
                 if self.on_send_chat:
                     self.on_send_chat(text, rid)
             return "break"
