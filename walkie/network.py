@@ -1,5 +1,6 @@
 import collections
 import logging
+import os
 import socket
 import struct
 import threading
@@ -364,6 +365,11 @@ class PeerDiscovery:
             return [(name, ip) for ip, (name, _, _) in self.peers.items()]
 
 
+CHAT_FRAG_SIZE = 900
+CHAT_FRAG_TIMEOUT = 5.0
+CHAT_FRAG_MAX_PENDING = 50
+
+
 class ChatTransport:
 
     def __init__(self, username: str, encryption_keys: dict[int, bytes],
@@ -377,6 +383,8 @@ class ChatTransport:
         self.peer_discovery = peer_discovery
         self._running = False
         self._dedup = _Deduplicator()
+        self._assembly: dict[int, dict] = {}
+        self._assembly_lock = threading.Lock()
         log.info(f"ChatTransport started for user '{username}' (Rooms: {self._active_rooms})")
 
     @property
@@ -386,6 +394,8 @@ class ChatTransport:
     def set_active_rooms(self, rooms: set[int]):
         self._active_rooms = tuple(rooms)
         self._dedup.clear()
+        with self._assembly_lock:
+            self._assembly.clear()
         log.debug(f"ChatTransport active rooms changed to {rooms}")
 
     def start(self):
@@ -424,29 +434,84 @@ class ChatTransport:
             msg_bytes = text.encode("utf-8")
             payload = struct.pack("B", len(name_bytes)) + name_bytes + msg_bytes
 
-            aad = struct.pack("B", room_id)
-            encrypted = encrypt(payload, self.keys[room_id], aad=aad)
+            fragments = []
+            for i in range(0, len(payload), CHAT_FRAG_SIZE):
+                chunk = payload[i:i + CHAT_FRAG_SIZE]
+                aad = struct.pack("B", room_id)
+                encrypted = encrypt(chunk, self.keys[room_id], aad=aad)
+                if encrypted is None:
+                    return
+                fragments.append(encrypted)
+
+            total_frags = len(fragments)
+            msg_id = struct.unpack("!H", os.urandom(2))[0]
 
             room_byte = struct.pack("B", room_id)
-            packet = MSG_CHAT + room_byte + encrypted
 
-            if self.peer_discovery:
-                peers = self.peer_discovery.get_peers_for_room(room_id)
-                for peer_name, ip in peers:
-                    try:
-                        self._send_sock.sendto(packet, (ip, CHAT_PORT))
-                    except Exception:
-                        pass
-                log.debug(f"Chat sent (Room {room_id}) to {len(peers)} peers: '{text[:50]}'")
-            else:
-                for addr in _get_broadcast_addresses():
-                    try:
-                        self._send_sock.sendto(packet, (addr, CHAT_PORT))
-                    except Exception:
-                        pass
-                log.debug(f"Chat broadcast (Room {room_id}): '{text[:50]}'")
+            for idx, enc_frag in enumerate(fragments):
+                header = MSG_CHAT + room_byte + struct.pack("!H", msg_id) + struct.pack("B", idx) + struct.pack("B", total_frags)
+                packet = header + enc_frag
+
+                if self.peer_discovery:
+                    peers = self.peer_discovery.get_peers_for_room(room_id)
+                    for peer_name, ip in peers:
+                        try:
+                            self._send_sock.sendto(packet, (ip, CHAT_PORT))
+                        except Exception:
+                            pass
+                else:
+                    for addr in _get_broadcast_addresses():
+                        try:
+                            self._send_sock.sendto(packet, (addr, CHAT_PORT))
+                        except Exception:
+                            pass
+
+            log.debug(f"Chat sent (Room {room_id}) {total_frags} fragments: '{text[:50]}'")
         except Exception as e:
             log.error(f"Failed to send chat message: {e}", exc_info=True)
+
+    def _assemble_fragment(self, msg_id: int, frag_idx: int, total_frags: int, encrypted: bytes) -> bytes | None:
+        with self._assembly_lock:
+            if len(self._assembly) >= CHAT_FRAG_MAX_PENDING and msg_id not in self._assembly:
+                oldest_id = min(self._assembly, key=lambda k: self._assembly[k]["ts"])
+                del self._assembly[oldest_id]
+                log.debug(f"Assembly buffer full, dropped oldest msg_id={oldest_id}")
+
+            if msg_id not in self._assembly:
+                self._assembly[msg_id] = {
+                    "frags": [None] * total_frags,
+                    "received": 0,
+                    "total": total_frags,
+                    "ts": time.monotonic(),
+                }
+
+            entry = self._assembly[msg_id]
+            if entry["total"] != total_frags:
+                log.debug(f"Fragment total mismatch for msg_id={msg_id}")
+                return None
+            if frag_idx >= total_frags:
+                return None
+            if entry["frags"][frag_idx] is not None:
+                return None
+
+            entry["frags"][frag_idx] = encrypted
+            entry["received"] += 1
+            entry["ts"] = time.monotonic()
+
+            if entry["received"] == entry["total"]:
+                combined = b"".join(entry["frags"])
+                del self._assembly[msg_id]
+                return combined
+
+        return None
+
+    def _cleanup_stale_assembly(self):
+        now = time.monotonic()
+        with self._assembly_lock:
+            stale = [mid for mid, e in self._assembly.items() if now - e["ts"] > CHAT_FRAG_TIMEOUT]
+            for mid in stale:
+                del self._assembly[mid]
+                log.debug(f"Assembly timed out for msg_id={mid}")
 
     def _listen_loop(self):
         log.debug("Chat listen loop started")
@@ -458,7 +523,7 @@ class ChatTransport:
                     continue
 
                 if data[0:1] == MSG_CHAT:
-                    if len(data) < 3:
+                    if len(data) < 7:
                         continue
 
                     room_id = data[1]
@@ -469,9 +534,17 @@ class ChatTransport:
                     if room_id not in self.keys:
                         continue
 
+                    msg_id = struct.unpack("!H", data[2:4])[0]
+                    frag_idx = data[4]
+                    total_frags = data[5]
+                    encrypted = data[6:]
+
+                    combined = self._assemble_fragment(msg_id, frag_idx, total_frags, encrypted)
+                    if combined is None:
+                        continue
+
                     aad = struct.pack("B", room_id)
-                    encrypted = data[2:]
-                    plaintext = decrypt(encrypted, self.keys[room_id], aad=aad)
+                    plaintext = decrypt(combined, self.keys[room_id], aad=aad)
 
                     if plaintext is None:
                         log.debug(f"Received chat from {ip} but decryption failed (Room {room_id}, wrong key?)")
@@ -489,6 +562,8 @@ class ChatTransport:
 
                     if self.on_message:
                         self.on_message(sender, message, room_id)
+
+                self._cleanup_stale_assembly()
             except socket.timeout:
                 continue
             except Exception as e:
@@ -559,6 +634,8 @@ class VoiceTransport:
 
             aad = struct.pack("B", room_id)
             encrypted = encrypt(payload, self.keys[room_id], aad=aad)
+            if encrypted is None:
+                return
 
             room_byte = struct.pack("B", room_id)
             packet = MSG_VOICE + room_byte + encrypted

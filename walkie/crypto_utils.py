@@ -34,7 +34,7 @@ def derive_key(passphrase: str) -> bytes:
         raise
 
 
-def encrypt(data: bytes, key: bytes, aad: bytes = None) -> bytes:
+def encrypt(data: bytes, key: bytes, aad: bytes = None) -> bytes | None:
     try:
         aesgcm = AESGCM(key)
         nonce = os.urandom(12)
@@ -43,7 +43,7 @@ def encrypt(data: bytes, key: bytes, aad: bytes = None) -> bytes:
         return nonce + ciphertext
     except Exception as e:
         log.error(f"Encryption failed: {e}", exc_info=True)
-        raise
+        return None
 
 
 def decrypt(payload: bytes, key: bytes, aad: bytes = None) -> bytes | None:

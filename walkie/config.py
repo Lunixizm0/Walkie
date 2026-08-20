@@ -6,6 +6,11 @@ import string
 import tomllib
 from pathlib import Path
 
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+
 log = logging.getLogger(__name__)
 
 _DEFAULTS = {
@@ -181,10 +186,35 @@ def generate_config(path: str | Path | None = None) -> dict:
 
 
 EXCHANGE_PORT = 50100
+EXCHANGE_TIMEOUT = 10.0
+
+
+def _derive_exchange_key(shared_secret: bytes) -> bytes:
+    hkdf = HKDF(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=None,
+        info=b"walkie-config-exchange",
+    )
+    return hkdf.derive(shared_secret)
+
+
+def _ecdh_keypair():
+    private_key = ec.generate_private_key(ec.SECP256R1())
+    public_key = private_key.public_key()
+    pub_bytes = public_key.public_bytes(
+        serialization.Encoding.PEM,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    return private_key, pub_bytes
+
+
+def _ecdh_shared_secret(private_key, peer_pub_bytes: bytes) -> bytes:
+    peer_public_key = serialization.load_pem_public_key(peer_pub_bytes)
+    return private_key.exchange(ec.ECDH(), peer_public_key)
 
 
 def exchange_give(target_ip: str, config_path: str | Path | None = None):
-    # Send a config file to the target IP over TCP
     if config_path is None:
         config_path = Path.home() / ".config" / "walkie" / "walkie_config.toml"
     path = Path(config_path)
@@ -195,15 +225,39 @@ def exchange_give(target_ip: str, config_path: str | Path | None = None):
     data = path.read_bytes()
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(10.0)
+        sock.settimeout(EXCHANGE_TIMEOUT)
         sock.connect((target_ip, EXCHANGE_PORT))
 
-        sock.sendall(len(data).to_bytes(4, "big"))
-        sock.sendall(data)
+        my_priv, my_pub = _ecdh_keypair()
+        sock.sendall(len(my_pub).to_bytes(4, "big"))
+        sock.sendall(my_pub)
+
+        peer_pub_len = int.from_bytes(sock.recv(4), "big")
+        if peer_pub_len > 1024 * 1024:
+            log.error("Peer public key too large")
+            return False
+        peer_pub = b""
+        while len(peer_pub) < peer_pub_len:
+            chunk = sock.recv(min(65536, peer_pub_len - len(peer_pub)))
+            if not chunk:
+                log.error("Connection closed during key exchange")
+                return False
+            peer_pub += chunk
+
+        shared_secret = _ecdh_shared_secret(my_priv, peer_pub)
+        aes_key = _derive_exchange_key(shared_secret)
+
+        nonce = os.urandom(12)
+        aesgcm = AESGCM(aes_key)
+        ciphertext = aesgcm.encrypt(nonce, data, None)
+
+        encrypted_payload = nonce + ciphertext
+        sock.sendall(len(encrypted_payload).to_bytes(4, "big"))
+        sock.sendall(encrypted_payload)
 
         response = sock.recv(32)
         if response == b"OK":
-            log.info(f"Config sent to {target_ip}:{EXCHANGE_PORT}")
+            log.info(f"Config sent securely to {target_ip}:{EXCHANGE_PORT}")
             return True
         else:
             log.error(f"Error: {target_ip} did not respond")
@@ -219,7 +273,6 @@ def exchange_give(target_ip: str, config_path: str | Path | None = None):
 
 
 def exchange_get(config_path: str | Path | None = None):
-    # Listen for a config file from another client and save it
     if config_path is None:
         config_path = Path.home() / ".config" / "walkie" / "walkie_config.toml"
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -228,38 +281,57 @@ def exchange_get(config_path: str | Path | None = None):
     server.listen(1)
     server.settimeout(300.0)
 
-    print(f"Waiting for config (port {EXCHANGE_PORT})...")
-    print("Other client: python main.py give <this_ip>")
+    print(f"Waiting for secure config transfer (port {EXCHANGE_PORT})...")
+    print("Other client: python walkie give <this_ip>")
 
     try:
         conn, addr = server.accept()
+        conn.settimeout(EXCHANGE_TIMEOUT)
         log.info(f"Connection received from {addr[0]}:{addr[1]}")
 
-        size_bytes = conn.recv(4)
-        if len(size_bytes) < 4:
-            log.error("Could not read size header")
+        peer_pub_len = int.from_bytes(conn.recv(4), "big")
+        if peer_pub_len > 1024 * 1024:
+            log.error("Peer public key too large")
             return False
+        peer_pub = b""
+        while len(peer_pub) < peer_pub_len:
+            chunk = conn.recv(min(65536, peer_pub_len - len(peer_pub)))
+            if not chunk:
+                log.error("Connection closed during key exchange")
+                return False
+            peer_pub += chunk
 
-        size = int.from_bytes(size_bytes, "big")
-        if size > 10 * 1024 * 1024:
-            log.error("Config file too large (max 10MB)")
+        my_priv, my_pub = _ecdh_keypair()
+        conn.sendall(len(my_pub).to_bytes(4, "big"))
+        conn.sendall(my_pub)
+
+        shared_secret = _ecdh_shared_secret(my_priv, peer_pub)
+        aes_key = _derive_exchange_key(shared_secret)
+
+        enc_len = int.from_bytes(conn.recv(4), "big")
+        if enc_len > 10 * 1024 * 1024:
+            log.error("Encrypted config too large (max 10MB)")
             return False
-
-        received = b""
-        while len(received) < size:
-            chunk = conn.recv(min(65536, size - len(received)))
+        received_enc = b""
+        while len(received_enc) < enc_len:
+            chunk = conn.recv(min(65536, enc_len - len(received_enc)))
             if not chunk:
                 log.error("Connection closed prematurely")
                 return False
-            received += chunk
+            received_enc += chunk
+
+        nonce = received_enc[:12]
+        ciphertext = received_enc[12:]
+        aesgcm = AESGCM(aes_key)
+        plaintext = aesgcm.decrypt(nonce, ciphertext, None)
 
         conn.sendall(b"OK")
         conn.close()
 
         path = Path(config_path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(received)
-        log.info(f"Config saved: {path}")
+        path.write_bytes(plaintext)
+        log.info(f"Config received securely: {path}")
         print(f"Config received and saved: {path}")
         return True
     except socket.timeout:
