@@ -65,6 +65,34 @@ You can override the path with the `WALKIE_CONFIG` environment variable.
 - Linux, Windows, or macOS
 - Microphone and speakers
 
+### System Dependencies
+
+Walkie requires system libraries for audio and GUI tray support. Install them before installing the Python package:
+
+**Debian / Ubuntu:**
+
+```bash
+sudo apt install -y portaudio19-dev gobject-introspection \
+  libgirepository2.0-dev libglib2.0-dev pkg-config python3-dev \
+  libgirepository2.0-dev
+```
+
+**Arch Linux:**
+
+```bash
+sudo pacman -S --needed portaudio gobject-introspection pkgconf python
+```
+
+**macOS (Homebrew):**
+
+```bash
+brew install portaudio gobject-introspection pkg-config
+```
+
+**Windows:**
+
+No extra system dependencies needed. Wheels for `sounddevice` and `pygobject` bundle everything required.
+
 ## License
 
 MIT
