@@ -174,7 +174,9 @@ class RoomTabBar:
             self._tabs[rid] = btn
 
         if rooms:
-            self.select_room(rooms[0]["id"])
+            self._selected_id = rooms[0]["id"]
+            btn = self._tabs[self._selected_id]
+            btn.configure(bg=TAB_ACTIVE_BG, fg=FG_ACCENT_LIGHT)
 
     def select_room(self, room_id):
         if self._selected_id is not None and self._selected_id in self._tabs:
@@ -701,7 +703,7 @@ class WalkieTalkieGUI:
             self._chat._is_closing = self._is_closing
 
             if active_rooms:
-                self._chat.set_selected_room(active_rooms[0])
+                self._on_room_changed(self._room_tabs.selected_room)
 
             tk.Frame(right, bg=BORDER_COLOR, height=1).pack(fill="x")
 
