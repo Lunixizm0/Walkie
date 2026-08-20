@@ -386,6 +386,10 @@ class Transport:
         self._fragmented = fragmented
         self._assembly: dict[int, dict] = {}
         self._assembly_lock = threading.Lock()
+        self._seq_num = 0
+        self._peer_seq: dict[str, int] = {}
+        self._packet_loss_count = 0
+        self._packet_total_count = 0
         log.info(f"Transport started for user '{username}' (type={message_type.hex()}, port={port}, Rooms: {self._active_rooms})")
 
     @property
@@ -449,7 +453,9 @@ class Transport:
             return
 
         room_byte = struct.pack("B", room_id)
-        packet = self._msg_type + room_byte + encrypted
+        seq_bytes = struct.pack("!H", self._seq_num & 0xFFFF)
+        self._seq_num += 1
+        packet = self._msg_type + room_byte + seq_bytes + encrypted
 
         if self.peer_discovery:
             peers = self.peer_discovery.get_peers_for_room(room_id)
@@ -536,6 +542,9 @@ class Transport:
             for mid in stale:
                 del self._assembly[mid]
 
+    def get_packet_loss_stats(self) -> tuple[int, int]:
+        return self._packet_loss_count, self._packet_total_count
+
     def _listen_loop(self):
         log.debug(f"Transport listen loop started (port={self._port})")
         while self._running:
@@ -571,9 +580,10 @@ class Transport:
 
                     plaintext = decrypt(combined, self.keys[room_id], aad=aad)
                 else:
-                    if len(data) < 3:
+                    if len(data) < 5:
                         continue
-                    encrypted = data[2:]
+                    seq_num = struct.unpack("!H", data[2:4])[0]
+                    encrypted = data[4:]
                     plaintext = decrypt(encrypted, self.keys[room_id], aad=aad)
 
                 if plaintext is None:
@@ -585,6 +595,15 @@ class Transport:
 
                 if self._dedup.is_duplicate(plaintext):
                     continue
+
+                if not self._fragmented:
+                    self._packet_total_count += 1
+                    if sender in self._peer_seq:
+                        expected = (self._peer_seq[sender] + 1) & 0xFFFF
+                        if seq_num != expected:
+                            self._packet_loss_count += 1
+                            log.debug(f"Seq gap from '{sender}': expected {expected}, got {seq_num}")
+                    self._peer_seq[sender] = seq_num
 
                 if self.on_receive:
                     self.on_receive(sender, payload, room_id)
