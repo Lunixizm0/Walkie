@@ -433,45 +433,38 @@ class PTTManager:
         self.vad_state = False
         self.on_rooms_toggled = None
 
-        self.frame = tk.Frame(parent, bg=PTT_IDLE_BG, height=48)
+        self.frame = tk.Frame(parent, bg=PTT_IDLE_BG, height=44)
         self.frame.pack(fill="x")
         self.frame.pack_propagate(False)
 
-        left_section = tk.Frame(self.frame, bg=PTT_IDLE_BG)
-        left_section.pack(side="left", fill="y")
-
-        self.indicator = tk.Label(left_section, text="+", font=(FONT_FAMILY, 14),
+        self.indicator = tk.Label(self.frame, text="+", font=(FONT_FAMILY, 14),
                                   fg=FG_GREEN, bg=PTT_IDLE_BG)
-        self.indicator.pack(side="left", padx=(15, 5), pady=8)
+        self.indicator.pack(side="left", padx=(15, 5), pady=6)
 
-        self.label = tk.Label(left_section,
-                              text="Hold  Shift + V  to talk",
+        self.label = tk.Label(self.frame,
+                              text="Hold Shift + V to talk",
                               font=fonts["ptt"], fg=FG_GREEN, bg=PTT_IDLE_BG)
-        self.label.pack(side="left", fill="x", expand=True, padx=5)
-
-        center_section = tk.Frame(self.frame, bg=PTT_IDLE_BG)
-        center_section.pack(side="left", fill="y", padx=10)
+        self.label.pack(side="left", padx=5, pady=6)
 
         self._room_toggles = {}
+        sep = tk.Frame(self.frame, bg=BORDER_COLOR, width=1)
+        sep.pack(side="left", fill="y", padx=10, pady=6)
         for rid in rooms:
             name = ROOM_NAMES.get(rid, str(rid))
             var = tk.BooleanVar(value=True)
-            cb = tk.Checkbutton(center_section, text=name, variable=var,
+            cb = tk.Checkbutton(self.frame, text=name, variable=var,
                                 font=fonts["small"], bg=PTT_IDLE_BG, fg=FG_DIM,
                                 selectcolor=BG_INPUT, activebackground=PTT_IDLE_BG,
                                 activeforeground=FG_TEXT, cursor="hand2",
                                 command=lambda r=rid, v=var: self._on_toggle(r, v.get()))
-            cb.pack(side="left", padx=6)
+            cb.pack(side="left", padx=4, pady=6)
             self._room_toggles[rid] = (cb, var)
 
-        right_section = tk.Frame(self.frame, bg=PTT_IDLE_BG)
-        right_section.pack(side="right", fill="y")
-
-        self.vad_btn = tk.Button(right_section, text="VAD", font=fonts["small"],
+        self.vad_btn = tk.Button(self.frame, text="VAD", font=fonts["small"],
                                  fg=FG_DIM, bg=BG_DARK, activebackground=BG_INPUT,
                                  activeforeground=FG_TEXT, relief="flat", cursor="hand2",
                                  command=self._on_vad_toggle, padx=10, pady=4)
-        self.vad_btn.pack(side="right", padx=(5, 15), pady=8)
+        self.vad_btn.pack(side="right", padx=(5, 15), pady=6)
 
     def bind_keys(self, root):
         root.bind("<KeyPress>", self._on_key_press)
@@ -528,9 +521,7 @@ class PTTManager:
             for rid, (cb, var) in self._room_toggles.items():
                 cb.configure(bg=bg)
 
-            if hasattr(self, 'vad_btn'):
-                if not self.vad_state:
-                    self.vad_btn.configure(bg=BG_DARK if not active else PTT_ACTIVE_BG)
+            self.vad_btn.configure(bg=BG_DARK if not active else PTT_ACTIVE_BG)
         except Exception as e:
             log.error(f"ptt_state: {e}", exc_info=True)
 
@@ -698,12 +689,6 @@ class WalkieTalkieGUI:
 
             self._room_tabs = RoomTabBar(right, get_rooms(), self._fonts, self._on_room_changed)
 
-            self._chat = ChatWidget(right, self._fonts, on_send=self._on_send_message)
-            self._chat._is_closing = self._is_closing
-
-            if active_rooms:
-                self._on_room_changed(self._room_tabs.selected_room)
-
             tk.Frame(right, bg=BORDER_COLOR, height=1).pack(fill="x")
 
             self._ptt = PTTManager(right, self._fonts, active_rooms,
@@ -712,6 +697,12 @@ class WalkieTalkieGUI:
                                    on_vad_toggled=on_vad_toggled,
                                    on_play_beep=on_play_beep)
             self._ptt.on_rooms_toggled = on_rooms_toggled
+
+            self._chat = ChatWidget(right, self._fonts, on_send=self._on_send_message)
+            self._chat._is_closing = self._is_closing
+
+            if active_rooms:
+                self._on_room_changed(self._room_tabs.selected_room)
 
             self._tray = TrayManager(self.root, self._do_close)
 
