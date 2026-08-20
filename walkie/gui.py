@@ -142,131 +142,89 @@ class StartupDialog(tk.Tk):
         self.destroy()
 
 
-class WalkieTalkieGUI:
-    def __init__(self, username, active_rooms, on_send_chat=None,
-                 on_ptt_start=None, on_ptt_stop=None,
-                 on_rooms_toggled=None, on_vad_toggled=None, on_play_beep=None,
-                 on_close=None):
-        try:
-            self.username = username
-            self.active_rooms = active_rooms
-            self.enabled_rooms = set(active_rooms)
-            self.on_send_chat = on_send_chat
-            self.on_ptt_start = on_ptt_start
-            self.on_ptt_stop = on_ptt_stop
-            self.on_rooms_toggled = on_rooms_toggled
-            self.on_vad_toggled = on_vad_toggled
-            self.on_play_beep = on_play_beep
-            self.on_close = on_close
+class PeerListWidget:
+    def __init__(self, parent, username, fonts, on_play_beep=None):
+        self.on_play_beep = on_play_beep
+        self._root = parent
+        self._fonts = fonts
+        self._peers_by_ip = {}
 
-            self._ptt_active = False
-            self._shift_held = False
-            self._v_held = False
-            self._is_closing = False
-            self.tray_icon = None
-            self.vad_state = False
+        self.frame = tk.Frame(parent, bg=BG_SIDEBAR, width=220)
+        self.frame.pack(side="left", fill="y")
+        self.frame.pack_propagate(False)
 
-            self.root = tk.Tk()
-            self.root.title(f"Walkie-Talkie - {username}")
-            self.root.configure(bg=BG_DARK)
-            self.root.minsize(800, 550)
-
-            try:
-                self.root.state("zoomed")
-            except tk.TclError:
-                self.root.attributes("-zoomed", True)
-
-            self.font_title = tkfont.Font(family="Segoe UI", size=13, weight="bold")
-            self.font_body = tkfont.Font(family="Segoe UI", size=11)
-            self.font_small = tkfont.Font(family="Segoe UI", size=9)
-            self.font_chat = tkfont.Font(family="Segoe UI", size=11)
-            self.font_input = tkfont.Font(family="Segoe UI", size=12)
-            self.font_ptt = tkfont.Font(family="Segoe UI", size=12, weight="bold")
-            self.font_peer = tkfont.Font(family="Segoe UI", size=11)
-
-            self._build_layout()
-            self._bind_keys()
-            self.root.protocol("WM_DELETE_WINDOW", self._on_window_closing)
-            self.root.update_idletasks()
-            log.info(f"GUI started for user '{username}'")
-        except Exception as e:
-            log.error(f"Failed to start GUI: {e}", exc_info=True)
-            raise
-
-    def _build_layout(self):
-        main = tk.Frame(self.root, bg=BG_DARK)
-        main.pack(fill="both", expand=True)
-
-        sidebar = tk.Frame(main, bg=BG_SIDEBAR, width=220)
-        sidebar.pack(side="left", fill="y")
-        sidebar.pack_propagate(False)
-
-        sb_header = tk.Frame(sidebar, bg=BG_HEADER, height=56)
-        sb_header.pack(fill="x")
-        sb_header.pack_propagate(False)
-        tk.Label(sb_header, text="Online Peers", font=self.font_title,
+        header = tk.Frame(self.frame, bg=BG_HEADER, height=56)
+        header.pack(fill="x")
+        header.pack_propagate(False)
+        tk.Label(header, text="Online Peers", font=fonts["title"],
                  fg=FG_ACCENT_LIGHT, bg=BG_HEADER).pack(side="left", padx=15, pady=12)
 
-        tk.Frame(sidebar, bg=BORDER_COLOR, height=1).pack(fill="x")
+        tk.Frame(self.frame, bg=BORDER_COLOR, height=1).pack(fill="x")
 
-        self.peers_frame = tk.Frame(sidebar, bg=BG_SIDEBAR)
-        self.peers_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        scrollable = tk.Frame(self.frame, bg=BG_SIDEBAR)
+        scrollable.pack(fill="both", expand=True, padx=10, pady=10)
 
-        you_frame = tk.Frame(self.peers_frame, bg=BG_SIDEBAR)
+        you_frame = tk.Frame(scrollable, bg=BG_SIDEBAR)
         you_frame.pack(fill="x", pady=(0, 8))
         tk.Label(you_frame, text="+", font=("Segoe UI", 8), fg=FG_GREEN, bg=BG_SIDEBAR).pack(side="left", padx=(5, 8))
-        tk.Label(you_frame, text=f"{self.username} (You)", font=self.font_peer, fg=FG_TEXT, bg=BG_SIDEBAR).pack(side="left")
+        tk.Label(you_frame, text=f"{username} (You)", font=fonts["peer"], fg=FG_TEXT, bg=BG_SIDEBAR).pack(side="left")
 
-        tk.Frame(self.peers_frame, bg=BORDER_COLOR, height=1).pack(fill="x", pady=5)
+        tk.Frame(scrollable, bg=BORDER_COLOR, height=1).pack(fill="x", pady=5)
 
-        self.peer_widgets_frame = tk.Frame(self.peers_frame, bg=BG_SIDEBAR)
-        self.peer_widgets_frame.pack(fill="both", expand=True)
+        self.widgets_frame = tk.Frame(scrollable, bg=BG_SIDEBAR)
+        self.widgets_frame.pack(fill="both", expand=True)
 
-        self.no_peers_label = tk.Label(self.peer_widgets_frame, text="Searching for peers...",
-                                       font=self.font_small, fg=FG_DIM, bg=BG_SIDEBAR)
+        self.no_peers_label = tk.Label(self.widgets_frame, text="Searching for peers...",
+                                       font=fonts["small"], fg=FG_DIM, bg=BG_SIDEBAR)
         self.no_peers_label.pack(pady=20)
 
-        tk.Frame(sidebar, bg=BORDER_COLOR, height=1).pack(fill="x")
+    def update(self, peers):
+        new_ips = {ip for _, ip in peers}
 
-        ch_header = tk.Frame(sidebar, bg=BG_HEADER, height=40)
-        ch_header.pack(fill="x")
-        ch_header.pack_propagate(False)
-        tk.Label(ch_header, text="Channels", font=self.font_title,
-                 fg=FG_ACCENT_LIGHT, bg=BG_HEADER).pack(side="left", padx=15, pady=8)
+        for ip in set(self._peers_by_ip) - new_ips:
+            self._peers_by_ip[ip].destroy()
+            del self._peers_by_ip[ip]
 
-        tk.Frame(sidebar, bg=BORDER_COLOR, height=1).pack(fill="x")
+        for name, ip in peers:
+            if ip in self._peers_by_ip:
+                continue
+            row = tk.Frame(self.widgets_frame, bg=BG_SIDEBAR)
+            row.pack(fill="x", pady=2)
+            tk.Label(row, text="+", font=("Segoe UI", 8), fg=PEER_DOT_ONLINE, bg=BG_SIDEBAR).pack(side="left", padx=(5, 8))
+            tk.Label(row, text=name, font=self._fonts["peer"], fg=FG_TEXT, bg=BG_SIDEBAR).pack(side="left")
+            tk.Label(row, text=ip, font=self._fonts["small"], fg=FG_DIM, bg=BG_SIDEBAR).pack(side="right", padx=5)
+            self._peers_by_ip[ip] = row
 
-        self.channels_frame = tk.Frame(sidebar, bg=BG_SIDEBAR)
-        self.channels_frame.pack(fill="x", padx=10, pady=8)
+            if self.on_play_beep:
+                self.on_play_beep(880, 50)
+                self._root.after(100, lambda: self.on_play_beep(1046, 50))
 
-        self._room_checkbuttons = {}
-        for rid in self.active_rooms:
-            var = tk.BooleanVar(value=True)
-            cb = tk.Checkbutton(
-                self.channels_frame, text=ROOM_NAMES.get(rid, f"Room {rid}"),
-                variable=var, bg=BG_SIDEBAR, fg=FG_TEXT, selectcolor=BG_INPUT,
-                font=self.font_body, activebackground=BG_SIDEBAR,
-                activeforeground=FG_TEXT,
-                command=lambda r=rid, v=var: self._on_room_toggle(r, v))
-            cb.pack(anchor="w", pady=2)
-            self._room_checkbuttons[rid] = (var, cb)
+        if not peers and not self._peers_by_ip:
+            tk.Label(self.widgets_frame, text="No peers found yet...",
+                     font=self._fonts["small"], fg=FG_DIM, bg=BG_SIDEBAR).pack(pady=20)
 
-        tk.Frame(main, bg=BORDER_COLOR, width=1).pack(side="left", fill="y")
+        log.debug(f"Peer list: {len(peers)} peers")
 
-        right = tk.Frame(main, bg=BG_DARK)
-        right.pack(side="left", fill="both", expand=True)
 
-        chat_header = tk.Frame(right, bg=BG_HEADER, height=56)
-        chat_header.pack(fill="x")
-        chat_header.pack_propagate(False)
+class ChatWidget:
+    def __init__(self, parent, fonts, on_send=None):
+        self.on_send = on_send
+        self._fonts = fonts
+        self._is_closing = False
 
-        tk.Label(chat_header, text="Channel Chat", font=self.font_title,
+        self.frame = tk.Frame(parent, bg=BG_DARK)
+        self.frame.pack(side="left", fill="both", expand=True)
+
+        header = tk.Frame(self.frame, bg=BG_HEADER, height=56)
+        header.pack(fill="x")
+        header.pack_propagate(False)
+        tk.Label(header, text="Channel Chat", font=fonts["title"],
                  fg=FG_ACCENT_LIGHT, bg=BG_HEADER).pack(side="left", padx=15, pady=12)
 
-        tk.Frame(right, bg=BORDER_COLOR, height=1).pack(fill="x")
+        tk.Frame(self.frame, bg=BORDER_COLOR, height=1).pack(fill="x")
 
         self.chat_area = scrolledtext.ScrolledText(
-            right, font=self.font_chat, bg=BG_PANEL, fg=FG_TEXT,
+            self.frame, font=fonts["chat"], bg=BG_PANEL, fg=FG_TEXT,
             relief="flat", bd=0, wrap="word", state="disabled",
             insertbackground=FG_TEXT, selectbackground=FG_ACCENT,
             padx=15, pady=10, spacing1=4
@@ -280,90 +238,143 @@ class WalkieTalkieGUI:
         self.chat_area.tag_configure("text", foreground=FG_TEXT, font=("Segoe UI", 11))
         self.chat_area.tag_configure("system", foreground=FG_ORANGE, font=("Segoe UI", 10, "italic"))
 
-        tk.Frame(right, bg=BORDER_COLOR, height=1).pack(fill="x")
-        input_frame = tk.Frame(right, bg=BG_INPUT, height=52)
+        tk.Frame(self.frame, bg=BORDER_COLOR, height=1).pack(fill="x")
+
+        input_frame = tk.Frame(self.frame, bg=BG_INPUT, height=80)
         input_frame.pack(fill="x")
         input_frame.pack_propagate(False)
 
-        self.chat_input = tk.Entry(input_frame, font=self.font_input, bg=BG_INPUT, fg=FG_TEXT,
-                                   insertbackground=FG_TEXT, relief="flat", bd=0)
+        self.chat_input = tk.Text(input_frame, font=fonts["input"], bg=BG_INPUT, fg=FG_TEXT,
+                                  insertbackground=FG_TEXT, relief="flat", bd=0,
+                                  height=1, wrap="word", undo=True)
         self.chat_input.pack(side="left", fill="both", expand=True, padx=15, pady=8)
-        self.chat_input.bind("<Return>", self._on_send_message)
+        self.chat_input.bind("<Return>", self._on_enter)
+        self.chat_input.bind("<Shift-Return>", lambda e: None)
 
-        send_btn = tk.Button(input_frame, text="Send", font=self.font_body,
+        send_btn = tk.Button(input_frame, text="Send", font=fonts["body"],
                              bg=FG_ACCENT, fg="white", activebackground=FG_ACCENT_LIGHT,
                              relief="flat", bd=0, cursor="hand2", padx=20,
-                             command=lambda: self._on_send_message(None))
+                             command=self._do_send)
         send_btn.pack(side="right", padx=(0, 10), pady=8)
 
-        tk.Frame(right, bg=BORDER_COLOR, height=1).pack(fill="x")
-        self.ptt_frame = tk.Frame(right, bg=PTT_IDLE_BG)
-        self.ptt_frame.pack(fill="x")
+    def _on_enter(self, event):
+        if event.state & 0x1:
+            return
+        self._do_send()
+        return "break"
 
-        self.ptt_indicator = tk.Label(self.ptt_frame, text="+", font=("Segoe UI", 14),
-                                      fg=FG_GREEN, bg=PTT_IDLE_BG)
-        self.ptt_indicator.pack(side="left", padx=(20, 8), pady=8)
+    def _do_send(self):
+        text = self.chat_input.get("1.0", "end").strip()
+        if not text:
+            return
+        self.chat_input.delete("1.0", "end")
+        if self.on_send:
+            self.on_send(text)
 
-        self.vad_btn = tk.Button(self.ptt_frame, text="VAD: Off", font=self.font_small,
+    def add_message(self, sender, message, is_self=False, room_id=0):
+        if self._is_closing:
+            return
+        area = self.chat_area
+
+        def _update():
+            try:
+                if self._is_closing or not area.winfo_exists():
+                    return
+                area.config(state="normal")
+                t_str = time.strftime("%H:%M")
+                area.insert("end", f"[{t_str}] ", "time")
+                r_name = ROOM_NAMES.get(room_id, str(room_id))
+                area.insert("end", f"[{r_name}] ", "channel")
+                name_tag = "self" if is_self else "other"
+                area.insert("end", f"{sender}: ", name_tag)
+                area.insert("end", f"{message}\n", "text")
+                area.config(state="disabled")
+                area.see("end")
+            except tk.TclError:
+                pass
+
+        self._root.after(0, _update)
+
+    def add_system(self, message):
+        if self._is_closing:
+            return
+        area = self.chat_area
+
+        def _update():
+            try:
+                if self._is_closing or not area.winfo_exists():
+                    return
+                area.config(state="normal")
+                area.insert("end", f"\n[SYSTEM] {message}\n", "system")
+                area.config(state="disabled")
+                area.see("end")
+            except tk.TclError:
+                pass
+
+        self._root.after(0, _update)
+
+    @property
+    def _root(self):
+        return self.frame.winfo_toplevel()
+
+
+class PTTManager:
+    def __init__(self, parent, fonts, rooms,
+                 on_ptt_start=None, on_ptt_stop=None,
+                 on_vad_toggled=None, on_play_beep=None):
+        self._fonts = fonts
+        self._rooms = rooms
+        self._enabled_rooms = set(rooms)
+        self.on_ptt_start = on_ptt_start
+        self.on_ptt_stop = on_ptt_stop
+        self.on_vad_toggled = on_vad_toggled
+        self.on_play_beep = on_play_beep
+
+        self._ptt_active = False
+        self._shift_held = False
+        self.vad_state = False
+        self.on_rooms_toggled = None
+
+        self.frame = tk.Frame(parent, bg=PTT_IDLE_BG)
+        self.frame.pack(fill="x")
+
+        self.indicator = tk.Label(self.frame, text="+", font=("Segoe UI", 14),
+                                  fg=FG_GREEN, bg=PTT_IDLE_BG)
+        self.indicator.pack(side="left", padx=(20, 8), pady=8)
+
+        self.vad_btn = tk.Button(self.frame, text="VAD: Off", font=fonts["small"],
                                  fg=FG_DIM, bg=BG_DARK, activebackground=BG_INPUT,
                                  activeforeground=FG_TEXT, relief="flat", cursor="hand2",
                                  command=self._on_vad_toggle, padx=10, pady=4)
         self.vad_btn.pack(side="right", padx=(10, 20), pady=8)
 
-        self.ptt_badge = tk.Label(self.ptt_frame, text="", font=self.font_small,
-                                  fg=FG_DIM, bg=PTT_IDLE_BG)
-        self.ptt_badge.pack(side="right", padx=10)
+        self.badge = tk.Label(self.frame, text="", font=fonts["small"],
+                              fg=FG_DIM, bg=PTT_IDLE_BG)
+        self.badge.pack(side="right", padx=10)
 
-        self.ptt_label = tk.Label(self.ptt_frame,
-                                  text="READY - Hold  Shift + V  to talk",
-                                  font=self.font_ptt, fg=FG_GREEN, bg=PTT_IDLE_BG)
-        self.ptt_label.pack(side="left", fill="x", expand=True)
+        self.label = tk.Label(self.frame,
+                              text="READY - Hold  Shift + V  to talk",
+                              font=fonts["ptt"], fg=FG_GREEN, bg=PTT_IDLE_BG)
+        self.label.pack(side="left", fill="x", expand=True)
 
-        self._update_ptt_badge()
+        self._update_badge()
 
-    def _on_room_toggle(self, rid, var):
-        if var.get():
-            self.enabled_rooms.add(rid)
-        else:
-            self.enabled_rooms.discard(rid)
-        log.info(f"Room {ROOM_NAMES.get(rid)} {'enabled' if var.get() else 'disabled'}")
-        self._update_ptt_badge()
-        if self.on_rooms_toggled:
-            self.on_rooms_toggled(self.enabled_rooms)
-
-    def _update_ptt_badge(self):
-        names = [ROOM_NAMES.get(r, str(r)) for r in sorted(self.enabled_rooms)]
-        self.ptt_badge.config(text=", ".join(names) if names else "None")
-
-    def _on_vad_toggle(self):
-        self.vad_state = not self.vad_state
-        if self.vad_state:
-            self.vad_btn.config(text="VAD: On", fg=FG_GREEN, bg=BG_SIDEBAR)
-            self._set_ptt_state(True, override_text="ON AIR - Voice activation active...")
-        else:
-            self.vad_btn.config(text="VAD: Off", fg=FG_DIM, bg=BG_DARK)
-            self._set_ptt_state(False)
-        if self.on_vad_toggled:
-            self.on_vad_toggled(self.vad_state, self.enabled_rooms)
-
-    def _bind_keys(self):
-        self.root.bind("<KeyPress>", self._on_key_press)
-        self.root.bind("<KeyRelease>", self._on_key_release)
+    def bind_keys(self, root):
+        root.bind("<KeyPress>", self._on_key_press)
+        root.bind("<KeyRelease>", self._on_key_release)
 
     def _on_key_press(self, event):
         try:
             if event.keysym in ("Shift_L", "Shift_R"):
                 self._shift_held = True
             if event.keysym.lower() == "v" and self._shift_held:
-                if self.root.focus_get() == self.chat_input:
-                    return
                 if not self._ptt_active:
                     self._ptt_active = True
-                    self._set_ptt_state(True)
+                    self._set_active(True)
                     if self.on_play_beep:
                         self.on_play_beep(880, 50)
                     if self.on_ptt_start:
-                        self.on_ptt_start(self.enabled_rooms)
+                        self.on_ptt_start(self._enabled_rooms)
         except Exception as e:
             log.error(f"key_press: {e}", exc_info=True)
 
@@ -373,7 +384,7 @@ class WalkieTalkieGUI:
                 self._shift_held = False
                 if self._ptt_active:
                     self._ptt_active = False
-                    self._set_ptt_state(False)
+                    self._set_active(False)
                     if self.on_play_beep:
                         self.on_play_beep(659, 50)
                     if self.on_ptt_stop:
@@ -381,7 +392,7 @@ class WalkieTalkieGUI:
             if event.keysym.lower() == "v":
                 if self._ptt_active:
                     self._ptt_active = False
-                    self._set_ptt_state(False)
+                    self._set_active(False)
                     if self.on_play_beep:
                         self.on_play_beep(659, 50)
                     if self.on_ptt_stop:
@@ -389,147 +400,65 @@ class WalkieTalkieGUI:
         except Exception as e:
             log.error(f"key_release: {e}", exc_info=True)
 
-    def _set_ptt_state(self, active, override_text=None):
+    def _set_active(self, active, override_text=None):
         try:
             if active:
-                self.ptt_frame.configure(bg=PTT_ACTIVE_BG)
-                self.ptt_indicator.configure(fg=FG_RED, bg=PTT_ACTIVE_BG, text="*")
+                self.frame.configure(bg=PTT_ACTIVE_BG)
+                self.indicator.configure(fg=FG_RED, bg=PTT_ACTIVE_BG, text="*")
                 if not self.vad_state:
                     self.vad_btn.configure(bg=PTT_ACTIVE_BG)
-                txt = override_text or f"ON AIR - Speaking to {', '.join(ROOM_NAMES.get(r, str(r)) for r in sorted(self.enabled_rooms))}..."
-                self.ptt_label.configure(text=txt, fg=FG_RED, bg=PTT_ACTIVE_BG)
-                self.ptt_badge.configure(bg=PTT_ACTIVE_BG)
+                txt = override_text or f"ON AIR - Speaking to {', '.join(ROOM_NAMES.get(r, str(r)) for r in sorted(self._enabled_rooms))}..."
+                self.label.configure(text=txt, fg=FG_RED, bg=PTT_ACTIVE_BG)
+                self.badge.configure(bg=PTT_ACTIVE_BG)
             else:
-                self.ptt_frame.configure(bg=PTT_IDLE_BG)
-                self.ptt_indicator.configure(fg=FG_GREEN, bg=PTT_IDLE_BG, text="+")
+                self.frame.configure(bg=PTT_IDLE_BG)
+                self.indicator.configure(fg=FG_GREEN, bg=PTT_IDLE_BG, text="+")
                 if not self.vad_state:
                     self.vad_btn.configure(bg=BG_DARK)
-                self.ptt_label.configure(
+                self.label.configure(
                     text="READY - Hold  Shift + V  to talk",
                     fg=FG_GREEN, bg=PTT_IDLE_BG)
-                self.ptt_badge.configure(bg=PTT_IDLE_BG)
+                self.badge.configure(bg=PTT_IDLE_BG)
         except Exception as e:
             log.error(f"ptt_state: {e}", exc_info=True)
 
-    def _on_send_message(self, event):
-        try:
-            text = self.chat_input.get().strip()
-            if not text:
-                return "break"
-            self.chat_input.delete(0, "end")
-            self.add_chat_message(self.username, text, is_self=True, room_id=0)
-            for rid in self.enabled_rooms:
-                if self.on_send_chat:
-                    self.on_send_chat(text, rid)
-            return "break"
-        except Exception as e:
-            log.error(f"send_message: {e}", exc_info=True)
+    def _on_vad_toggle(self):
+        self.vad_state = not self.vad_state
+        if self.vad_state:
+            self.vad_btn.config(text="VAD: On", fg=FG_GREEN, bg=BG_SIDEBAR)
+            self._set_active(True, override_text="ON AIR - Voice activation active...")
+        else:
+            self.vad_btn.config(text="VAD: Off", fg=FG_DIM, bg=BG_DARK)
+            self._set_active(False)
+        if self.on_vad_toggled:
+            self.on_vad_toggled(self.vad_state, self._enabled_rooms)
 
-    def append_chat(self, sender, message, room_id, is_self=False):
-        self.add_chat_message(sender, message, is_self=is_self, room_id=room_id)
+    def toggle_room(self, rid, enabled):
+        if enabled:
+            self._enabled_rooms.add(rid)
+        else:
+            self._enabled_rooms.discard(rid)
+        log.info(f"Room {ROOM_NAMES.get(rid)} {'enabled' if enabled else 'disabled'}")
+        self._update_badge()
+        if self.on_rooms_toggled:
+            self.on_rooms_toggled(self._enabled_rooms)
 
-    def add_chat_message(self, sender, message, is_self=False, room_id=0):
-        if self._is_closing:
-            return
+    def _update_badge(self):
+        names = [ROOM_NAMES.get(r, str(r)) for r in sorted(self._enabled_rooms)]
+        self.badge.config(text=", ".join(names) if names else "None")
 
-        def _update():
-            try:
-                if self._is_closing or not getattr(self, "chat_area", None) or not self.root.winfo_exists():
-                    return
-                self.chat_area.config(state="normal")
-                t_str = time.strftime("%H:%M")
-                self.chat_area.insert("end", f"[{t_str}] ", "time")
-                r_name = ROOM_NAMES.get(room_id, str(room_id))
-                self.chat_area.insert("end", f"[{r_name}] ", "channel")
-                name_tag = "self" if is_self else "other"
-                self.chat_area.insert("end", f"{sender}: ", name_tag)
-                self.chat_area.insert("end", f"{message}\n", "text")
-                self.chat_area.config(state="disabled")
-                self.chat_area.see("end")
-            except tk.TclError:
-                pass
+    @property
+    def enabled_rooms(self):
+        return self._enabled_rooms
 
-        self.root.after(0, _update)
 
-    def add_system_message(self, message):
-        if self._is_closing:
-            return
+class TrayManager:
+    def __init__(self, root, on_quit):
+        self._root = root
+        self._on_quit = on_quit
+        self._icon = None
 
-        def _update():
-            try:
-                if self._is_closing or not getattr(self, "chat_area", None) or not self.root.winfo_exists():
-                    return
-                self.chat_area.config(state="normal")
-                self.chat_area.insert("end", f"\n[SYSTEM] {message}\n", "system")
-                self.chat_area.config(state="disabled")
-                self.chat_area.see("end")
-            except tk.TclError:
-                pass
-
-        self.root.after(0, _update)
-
-    def update_peers(self, peers):
-        if self._is_closing:
-            return
-
-        def _update():
-            try:
-                if self._is_closing or not self.root.winfo_exists():
-                    return
-
-                new_ips = {ip for _, ip in peers}
-
-                widgets_by_ip = {}
-                for widget in self.peer_widgets_frame.winfo_children():
-                    if isinstance(widget, tk.Frame):
-                        children = widget.winfo_children()
-                        if len(children) >= 3:
-                            ip = children[2].cget("text")
-                            widgets_by_ip[ip] = widget
-
-                for ip in set(widgets_by_ip) - new_ips:
-                    widgets_by_ip[ip].destroy()
-                    del widgets_by_ip[ip]
-
-                for name, ip in peers:
-                    if ip in widgets_by_ip:
-                        continue
-                    row = tk.Frame(self.peer_widgets_frame, bg=BG_SIDEBAR)
-                    row.pack(fill="x", pady=2)
-                    tk.Label(row, text="+", font=("Segoe UI", 8), fg=PEER_DOT_ONLINE, bg=BG_SIDEBAR).pack(side="left", padx=(5, 8))
-                    tk.Label(row, text=name, font=self.font_peer, fg=FG_TEXT, bg=BG_SIDEBAR).pack(side="left")
-                    tk.Label(row, text=ip, font=self.font_small, fg=FG_DIM, bg=BG_SIDEBAR).pack(side="right", padx=5)
-
-                    if self.on_play_beep:
-                        self.on_play_beep(880, 50)
-                        self.root.after(100, lambda: self.on_play_beep(1046, 50))
-
-                if not peers and not widgets_by_ip:
-                    tk.Label(self.peer_widgets_frame, text="No peers found yet...",
-                             font=self.font_small, fg=FG_DIM, bg=BG_SIDEBAR).pack(pady=20)
-
-                log.debug(f"Peer list: {len(peers)} peers")
-            except Exception as e:
-                log.error(f"update_peers: {e}", exc_info=True)
-
-        self.root.after(0, _update)
-
-    def _do_close(self):
-        self._is_closing = True
-        try:
-            if self.on_close:
-                self.on_close()
-            if self.root.winfo_exists():
-                self.root.destroy()
-        except Exception as e:
-            log.error(f"close: {e}", exc_info=True)
-
-    def _handle_actual_close(self, icon=None, item=None):
-        if icon:
-            icon.stop()
-        self.root.after(0, self._do_close)
-
-    def _create_tray_image(self):
+    def create_image(self):
         image = Image.new("RGB", (64, 64), color=(26, 26, 36))
         dc = ImageDraw.Draw(image)
         dc.line((32, 10, 32, 40), fill=FG_ACCENT, width=4)
@@ -537,18 +466,29 @@ class WalkieTalkieGUI:
         dc.rectangle((24, 34, 40, 44), fill=BG_DARK)
         return image
 
+    def go_to_tray(self):
+        self._root.withdraw()
+        image = self.create_image()
+        menu = pystray.Menu(
+            pystray.MenuItem("Show", self._show_window, default=True),
+            pystray.MenuItem("Quit", self._quit)
+        )
+        self._icon = pystray.Icon("walkie_talkie", image, "Walkie-Talkie LAN", menu=menu)
+        threading.Thread(target=self._icon.run, daemon=True).start()
+        log.info("Application minimized to system tray")
+
     def _show_window(self, icon=None, item=None):
         if icon:
             icon.stop()
-        self.root.after(0, self.root.deiconify)
+        self._root.after(0, self._root.deiconify)
 
-    def _on_window_closing(self):
-        if self._is_closing:
-            return
-        self._show_close_dialog()
+    def _quit(self, icon=None, item=None):
+        if icon:
+            icon.stop()
+        self._root.after(0, self._on_quit)
 
-    def _show_close_dialog(self):
-        dialog = tk.Toplevel(self.root)
+    def show_close_dialog(self, on_minimize, on_quit):
+        dialog = tk.Toplevel(self._root)
         dialog.title("Exit")
         dialog.configure(bg=BG_DARK)
         dialog.resizable(False, False)
@@ -557,8 +497,8 @@ class WalkieTalkieGUI:
 
         dialog.update_idletasks()
         dw, dh = 340, 180
-        rx = self.root.winfo_x() + (self.root.winfo_width() - dw) // 2
-        ry = self.root.winfo_y() + (self.root.winfo_height() - dh) // 2
+        rx = self._root.winfo_x() + (self._root.winfo_width() - dw) // 2
+        ry = self._root.winfo_y() + (self._root.winfo_height() - dh) // 2
         dialog.geometry(f"{dw}x{dh}+{rx}+{ry}")
 
         tk.Label(dialog, text="What would you like to do?",
@@ -572,19 +512,19 @@ class WalkieTalkieGUI:
         btn_frame = tk.Frame(dialog, bg=BG_DARK)
         btn_frame.pack(fill="x", padx=24)
 
-        def minimize_to_tray():
+        def minimize():
             dialog.destroy()
-            self._go_to_tray()
+            on_minimize()
 
         def quit_app():
             dialog.destroy()
-            self._do_close()
+            on_quit()
 
         tk.Button(btn_frame, text="Minimize to Tray",
                   font=tkfont.Font(family="Segoe UI", size=10),
                   bg=BG_INPUT, fg=FG_TEXT, activebackground=BG_PANEL,
                   activeforeground=FG_TEXT, relief="flat", cursor="hand2",
-                  command=minimize_to_tray, padx=12, pady=8).pack(side="left", expand=True, fill="x", padx=(0, 6))
+                  command=minimize, padx=12, pady=8).pack(side="left", expand=True, fill="x", padx=(0, 6))
 
         tk.Button(btn_frame, text="Quit",
                   font=tkfont.Font(family="Segoe UI", size=10),
@@ -594,16 +534,127 @@ class WalkieTalkieGUI:
 
         dialog.bind("<Escape>", lambda e: dialog.destroy())
 
-    def _go_to_tray(self):
-        self.root.withdraw()
-        image = self._create_tray_image()
-        menu = pystray.Menu(
-            pystray.MenuItem("Show", self._show_window, default=True),
-            pystray.MenuItem("Quit", self._handle_actual_close)
+
+class WalkieTalkieGUI:
+    def __init__(self, username, active_rooms, on_send_chat=None,
+                 on_ptt_start=None, on_ptt_stop=None,
+                 on_rooms_toggled=None, on_vad_toggled=None, on_play_beep=None,
+                 on_close=None):
+        try:
+            self.username = username
+            self.active_rooms = active_rooms
+            self.on_send_chat = on_send_chat
+            self.on_close = on_close
+            self._is_closing = False
+
+            self.root = tk.Tk()
+            self.root.title(f"Walkie-Talkie - {username}")
+            self.root.configure(bg=BG_DARK)
+            self.root.minsize(800, 550)
+
+            try:
+                self.root.state("zoomed")
+            except tk.TclError:
+                self.root.attributes("-zoomed", True)
+
+            self._fonts = {
+                "title": tkfont.Font(family="Segoe UI", size=13, weight="bold"),
+                "body": tkfont.Font(family="Segoe UI", size=11),
+                "small": tkfont.Font(family="Segoe UI", size=9),
+                "chat": tkfont.Font(family="Segoe UI", size=11),
+                "input": tkfont.Font(family="Segoe UI", size=12),
+                "ptt": tkfont.Font(family="Segoe UI", size=12, weight="bold"),
+                "peer": tkfont.Font(family="Segoe UI", size=11),
+            }
+
+            main = tk.Frame(self.root, bg=BG_DARK)
+            main.pack(fill="both", expand=True)
+
+            self._peer_list = PeerListWidget(main, username, self._fonts, on_play_beep=on_play_beep)
+
+            tk.Frame(main, bg=BORDER_COLOR, width=1).pack(side="left", fill="y")
+
+            right = tk.Frame(main, bg=BG_DARK)
+            right.pack(side="left", fill="both", expand=True)
+
+            self._chat = ChatWidget(right, self._fonts, on_send=self._on_send_message)
+            self._chat._is_closing = self._is_closing
+
+            tk.Frame(right, bg=BORDER_COLOR, height=1).pack(fill="x")
+
+            self._ptt = PTTManager(right, self._fonts, active_rooms,
+                                   on_ptt_start=on_ptt_start,
+                                   on_ptt_stop=on_ptt_stop,
+                                   on_vad_toggled=on_vad_toggled,
+                                   on_play_beep=on_play_beep)
+            self._ptt.on_rooms_toggled = on_rooms_toggled
+
+            self._tray = TrayManager(self.root, self._do_close)
+
+            self.root.protocol("WM_DELETE_WINDOW", self._on_window_closing)
+            self.root.update_idletasks()
+            log.info(f"GUI started for user '{username}'")
+        except Exception as e:
+            log.error(f"Failed to start GUI: {e}", exc_info=True)
+            raise
+
+    def _on_send_message(self, text):
+        try:
+            if not text:
+                return
+            self.add_chat_message(self.username, text, is_self=True, room_id=0)
+            for rid in self._ptt.enabled_rooms:
+                if self.on_send_chat:
+                    self.on_send_chat(text, rid)
+        except Exception as e:
+            log.error(f"send_message: {e}", exc_info=True)
+
+    def update_peers(self, peers):
+        if self._is_closing:
+            return
+
+        def _update():
+            try:
+                if self._is_closing or not self.root.winfo_exists():
+                    return
+                self._peer_list.update(peers)
+            except Exception as e:
+                log.error(f"update_peers: {e}", exc_info=True)
+
+        self.root.after(0, _update)
+
+    def append_chat(self, sender, message, room_id, is_self=False):
+        self.add_chat_message(sender, message, is_self=is_self, room_id=room_id)
+
+    def add_chat_message(self, sender, message, is_self=False, room_id=0):
+        if self._is_closing:
+            return
+        self._chat._is_closing = False
+        self._chat.add_message(sender, message, is_self=is_self, room_id=room_id)
+
+    def add_system_message(self, message):
+        if self._is_closing:
+            return
+        self._chat.add_system(message)
+
+    def _on_window_closing(self):
+        if self._is_closing:
+            return
+        self._tray.show_close_dialog(
+            on_minimize=self._tray.go_to_tray,
+            on_quit=self._do_close
         )
-        self.tray_icon = pystray.Icon("walkie_talkie", image, "Walkie-Talkie LAN", menu=menu)
-        threading.Thread(target=self.tray_icon.run, daemon=True).start()
-        log.info("Application minimized to system tray")
+
+    def _do_close(self):
+        self._is_closing = True
+        self._chat._is_closing = True
+        try:
+            if self.on_close:
+                self.on_close()
+            if self.root.winfo_exists():
+                self.root.destroy()
+        except Exception as e:
+            log.error(f"close: {e}", exc_info=True)
 
     def mainloop(self):
         try:
