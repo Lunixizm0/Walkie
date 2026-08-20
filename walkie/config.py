@@ -189,6 +189,16 @@ EXCHANGE_PORT = 50100
 EXCHANGE_TIMEOUT = 10.0
 
 
+def _recv_exact(conn: socket.socket, n: int) -> bytes:
+    buf = b""
+    while len(buf) < n:
+        chunk = conn.recv(n - len(buf))
+        if not chunk:
+            raise ConnectionError("Connection closed")
+        buf += chunk
+    return buf
+
+
 def _derive_exchange_key(shared_secret: bytes) -> bytes:
     hkdf = HKDF(
         algorithm=hashes.SHA256(),
@@ -232,17 +242,11 @@ def exchange_give(target_ip: str, config_path: str | Path | None = None):
         sock.sendall(len(my_pub).to_bytes(4, "big"))
         sock.sendall(my_pub)
 
-        peer_pub_len = int.from_bytes(sock.recv(4), "big")
+        peer_pub_len = int.from_bytes(_recv_exact(sock, 4), "big")
         if peer_pub_len > 1024 * 1024:
             log.error("Peer public key too large")
             return False
-        peer_pub = b""
-        while len(peer_pub) < peer_pub_len:
-            chunk = sock.recv(min(65536, peer_pub_len - len(peer_pub)))
-            if not chunk:
-                log.error("Connection closed during key exchange")
-                return False
-            peer_pub += chunk
+        peer_pub = _recv_exact(sock, peer_pub_len)
 
         shared_secret = _ecdh_shared_secret(my_priv, peer_pub)
         aes_key = _derive_exchange_key(shared_secret)
@@ -255,7 +259,7 @@ def exchange_give(target_ip: str, config_path: str | Path | None = None):
         sock.sendall(len(encrypted_payload).to_bytes(4, "big"))
         sock.sendall(encrypted_payload)
 
-        response = sock.recv(32)
+        response = _recv_exact(sock, 2)
         if response == b"OK":
             log.info(f"Config sent securely to {target_ip}:{EXCHANGE_PORT}")
             return True
@@ -289,17 +293,11 @@ def exchange_get(config_path: str | Path | None = None):
         conn.settimeout(EXCHANGE_TIMEOUT)
         log.info(f"Connection received from {addr[0]}:{addr[1]}")
 
-        peer_pub_len = int.from_bytes(conn.recv(4), "big")
+        peer_pub_len = int.from_bytes(_recv_exact(conn, 4), "big")
         if peer_pub_len > 1024 * 1024:
             log.error("Peer public key too large")
             return False
-        peer_pub = b""
-        while len(peer_pub) < peer_pub_len:
-            chunk = conn.recv(min(65536, peer_pub_len - len(peer_pub)))
-            if not chunk:
-                log.error("Connection closed during key exchange")
-                return False
-            peer_pub += chunk
+        peer_pub = _recv_exact(conn, peer_pub_len)
 
         my_priv, my_pub = _ecdh_keypair()
         conn.sendall(len(my_pub).to_bytes(4, "big"))
@@ -308,17 +306,11 @@ def exchange_get(config_path: str | Path | None = None):
         shared_secret = _ecdh_shared_secret(my_priv, peer_pub)
         aes_key = _derive_exchange_key(shared_secret)
 
-        enc_len = int.from_bytes(conn.recv(4), "big")
+        enc_len = int.from_bytes(_recv_exact(conn, 4), "big")
         if enc_len > 10 * 1024 * 1024:
             log.error("Encrypted config too large (max 10MB)")
             return False
-        received_enc = b""
-        while len(received_enc) < enc_len:
-            chunk = conn.recv(min(65536, enc_len - len(received_enc)))
-            if not chunk:
-                log.error("Connection closed prematurely")
-                return False
-            received_enc += chunk
+        received_enc = _recv_exact(conn, enc_len)
 
         nonce = received_enc[:12]
         ciphertext = received_enc[12:]
