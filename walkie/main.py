@@ -97,24 +97,26 @@ def cmd_run(args):
     try:
         active_rooms_set = set(encryption_keys.keys())
 
+        log.info("Starting PeerDiscovery...")
+        peer_discovery = PeerDiscovery(
+            username=username,
+            active_rooms=active_rooms_set
+        )
+
         log.info("Starting VoiceTransport...")
         voice_transport = VoiceTransport(
             username=username,
             encryption_keys=encryption_keys,
-            active_rooms=active_rooms_set
+            active_rooms=active_rooms_set,
+            peer_discovery=peer_discovery,
         )
 
         log.info("Starting ChatTransport...")
         chat_transport = ChatTransport(
             username=username,
             encryption_keys=encryption_keys,
-            active_rooms=active_rooms_set
-        )
-
-        log.info("Starting PeerDiscovery...")
-        peer_discovery = PeerDiscovery(
-            username=username,
-            active_rooms=active_rooms_set
+            active_rooms=active_rooms_set,
+            peer_discovery=peer_discovery,
         )
 
         log.info("Starting AudioEngine...")

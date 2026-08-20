@@ -25,7 +25,6 @@ MSG_VOICE = b"\x20"
 
 
 def _get_all_local_ips() -> set[str]:
-    # Return all IP addresses on this machines network interfaces.
     ips = set()
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -56,16 +55,14 @@ def _get_all_local_ips() -> set[str]:
 
 
 def _get_broadcast_addresses() -> list[str]:
-    """Return all subnet broadcast addresses for broadcasting."""
-    addrs = ["<broadcast>"]  # default 255.255.255.255
+    addrs = ["<broadcast>"]
 
     try:
         hostname = socket.gethostname()
         for info in socket.getaddrinfo(hostname, None, socket.AF_INET):
             ip = info[4][0]
-            # Calculate subnet broadcast address (simple /24 assumption)
             parts = ip.split(".")
-            if parts[0] != "127":  # skip loopback
+            if parts[0] != "127":
                 broadcast = f"{parts[0]}.{parts[1]}.{parts[2]}.255"
                 if broadcast not in addrs:
                     addrs.append(broadcast)
@@ -73,12 +70,10 @@ def _get_broadcast_addresses() -> list[str]:
         log.debug(f"Error calculating broadcast addresses: {e}")
 
     log.info(f"Broadcast addresses: {addrs}")
-    _cached_broadcast_addrs = addrs
     return addrs
 
 
 def _make_broadcast_socket(port: int, bind: bool = False) -> socket.socket:
-    # Create a UDP broadcast socket
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -93,26 +88,68 @@ def _make_broadcast_socket(port: int, bind: bool = False) -> socket.socket:
         raise
 
 
+def _build_peer_packet(msg_type: bytes, room_ids: set[int], username: str) -> bytes:
+    room_list = sorted(room_ids)
+    payload = msg_type + struct.pack("B", len(room_list))
+    for rid in room_list:
+        payload += struct.pack("B", rid)
+    payload += username.encode("utf-8")
+    return payload
+
+
+def _parse_peer_packet(data: bytes) -> tuple[set[int], str] | None:
+    if len(data) < 3:
+        return None
+
+    count = data[1]
+    if count == 0 or len(data) < 2 + count:
+        return None
+
+    room_ids = set()
+    for i in range(count):
+        room_ids.add(data[2 + i])
+
+    username = data[2 + count:].decode("utf-8", errors="replace")
+    return room_ids, username
+
+
 class PeerDiscovery:
-    #Discovers peers on the LAN via UDP broadcast
 
     def __init__(self, username: str, active_rooms: set[int] = None, on_peers_changed=None):
         self.username = username
         self.active_rooms = active_rooms or {0}
         self.local_ips = _get_all_local_ips()
         self.broadcast_addrs = _get_broadcast_addresses()
-        self.peers: dict[str, tuple[str, float]] = {}  # ip -> (username, last_seen)
+        self.peers: dict[str, tuple[str, float, set[int]]] = {}
         self.on_peers_changed = on_peers_changed
         self._running = False
         self._lock = threading.Lock()
+        self._pending_byes: set[int] = set()
         log.info(f"PeerDiscovery started for user '{username}' (Rooms: {self.active_rooms})")
 
     def set_active_rooms(self, rooms: set[int]):
-        self.active_rooms = set(rooms)
+        new_rooms = set(rooms)
+        removed_rooms = self.active_rooms - new_rooms
+        self.active_rooms = new_rooms
+
         with self._lock:
-            self.peers.clear()
+            to_remove = []
+            for ip, (name, ts, peer_rooms) in self.peers.items():
+                remaining = peer_rooms - removed_rooms
+                if not remaining:
+                    to_remove.append(ip)
+                    log.info(f"Peer removed (no shared rooms): '{name}' - {ip}")
+                else:
+                    self.peers[ip] = (name, ts, remaining)
+            for ip in to_remove:
+                del self.peers[ip]
+
+        if removed_rooms and self._running:
+            with self._lock:
+                self._pending_byes.update(removed_rooms)
+
         if self.on_peers_changed:
-            self.on_peers_changed([])
+            self.on_peers_changed(self._get_peer_list())
         log.debug(f"PeerDiscovery active rooms changed to {rooms}")
 
     def start(self):
@@ -137,8 +174,8 @@ class PeerDiscovery:
         log.info("PeerDiscovery stopping...")
         self._running = False
         try:
-            for rid in self.active_rooms:
-                payload = MSG_BYE + struct.pack("B", rid) + self.username.encode("utf-8")
+            if self.active_rooms:
+                payload = _build_peer_packet(MSG_BYE, self.active_rooms, self.username)
                 for addr in self.broadcast_addrs:
                     try:
                         self._send_sock.sendto(payload, (addr, DISCOVERY_PORT))
@@ -154,26 +191,38 @@ class PeerDiscovery:
         try:
             self._recv_sock.close()
         except Exception as e:
-            log.debug(f"Error closing receive socket: {e}")
+            log.debug(f"Error closing recv socket: {e}")
         log.info("PeerDiscovery stopped")
 
     def _is_local(self, ip: str) -> bool:
-        """Check if the given IP belongs to this machine."""
         return ip in self.local_ips
 
     def _broadcast_loop(self):
         log.debug("Discovery broadcast loop started")
         while self._running:
             try:
-                for rid in self.active_rooms:
-                    payload = MSG_HELLO + struct.pack("B", rid) + self.username.encode("utf-8")
+                with self._lock:
+                    byes_to_send = set(self._pending_byes)
+                    self._pending_byes.clear()
+
+                if byes_to_send:
+                    payload = _build_peer_packet(MSG_BYE, byes_to_send, self.username)
+                    for addr in self.broadcast_addrs:
+                        try:
+                            self._send_sock.sendto(payload, (addr, DISCOVERY_PORT))
+                        except Exception:
+                            pass
+                    log.debug(f"Sent BYE for rooms: {byes_to_send}")
+
+                if self.active_rooms:
+                    payload = _build_peer_packet(MSG_HELLO, self.active_rooms, self.username)
                     for addr in self.broadcast_addrs:
                         try:
                             self._send_sock.sendto(payload, (addr, DISCOVERY_PORT))
                         except Exception:
                             pass
             except Exception as e:
-                log.warning(f"Failed to send HELLO broadcast: {e}")
+                log.warning(f"Failed to send discovery broadcast: {e}")
             time.sleep(HELLO_INTERVAL)
         log.debug("Discovery broadcast loop ended")
 
@@ -188,30 +237,59 @@ class PeerDiscovery:
                     continue
 
                 if data[0:1] == MSG_HELLO:
-                    if len(data) < 2: continue
-                    room_id = data[1]
-                    if room_id not in self.active_rooms: continue
+                    parsed = _parse_peer_packet(data)
+                    if parsed is None:
+                        continue
 
-                    name = data[2:].decode("utf-8", errors="replace")
+                    room_ids, name = parsed
+                    common_rooms = room_ids & self.active_rooms
+                    if not common_rooms:
+                        continue
+
+                    changed = False
                     with self._lock:
-                        was_new = ip not in self.peers
-                        self.peers[ip] = (name, time.time())
-                    if was_new:
-                        log.info(f"New peer discovered: '{name}' - {ip}")
-                        if self.on_peers_changed:
-                            self.on_peers_changed(self._get_peer_list())
+                        if ip not in self.peers:
+                            self.peers[ip] = (name, time.time(), set(common_rooms))
+                            log.info(f"New peer discovered: '{name}' - {ip} (Rooms: {common_rooms})")
+                            changed = True
+                        else:
+                            existing_name, existing_ts, existing_rooms = self.peers[ip]
+                            updated_rooms = existing_rooms | common_rooms
+                            if updated_rooms != existing_rooms:
+                                self.peers[ip] = (name, time.time(), updated_rooms)
+                                log.debug(f"Peer rooms updated: '{name}' - {ip} (Rooms: {updated_rooms})")
+                                changed = True
+                            else:
+                                self.peers[ip] = (existing_name, time.time(), existing_rooms)
+
+                    if changed and self.on_peers_changed:
+                        self.on_peers_changed(self._get_peer_list())
 
                 elif data[0:1] == MSG_BYE:
-                    if len(data) < 2: continue
-                    room_id = data[1]
-                    if room_id not in self.active_rooms: continue
+                    parsed = _parse_peer_packet(data)
+                    if parsed is None:
+                        continue
 
+                    room_ids, name = parsed
+                    common_rooms = room_ids & self.active_rooms
+                    if not common_rooms:
+                        continue
+
+                    changed = False
                     with self._lock:
                         if ip in self.peers:
-                            name = self.peers[ip][0]
-                            del self.peers[ip]
-                            log.info(f"Peer left: '{name}' - {ip}")
-                    if self.on_peers_changed:
+                            existing_name, existing_ts, existing_rooms = self.peers[ip]
+                            remaining_rooms = existing_rooms - common_rooms
+                            if not remaining_rooms:
+                                del self.peers[ip]
+                                log.info(f"Peer left: '{name}' - {ip}")
+                                changed = True
+                            else:
+                                self.peers[ip] = (existing_name, existing_ts, remaining_rooms)
+                                log.debug(f"Peer rooms updated (BYE): '{name}' - {ip} (Remaining: {remaining_rooms})")
+                                changed = True
+
+                    if changed and self.on_peers_changed:
                         self.on_peers_changed(self._get_peer_list())
 
             except socket.timeout:
@@ -231,7 +309,7 @@ class PeerDiscovery:
                 now = time.time()
                 removed = False
                 with self._lock:
-                    expired = [ip for ip, (_, ts) in self.peers.items() if now - ts > PEER_TIMEOUT]
+                    expired = [ip for ip, (_, ts, _) in self.peers.items() if now - ts > PEER_TIMEOUT]
                     for ip in expired:
                         name = self.peers[ip][0]
                         del self.peers[ip]
@@ -240,25 +318,30 @@ class PeerDiscovery:
                 if removed and self.on_peers_changed:
                     self.on_peers_changed(self._get_peer_list())
             except Exception as e:
-                log.error(f"Peer cleanup loop error: {e}", exc_info=True)
+                log.error(f"Peer cleanup error: {e}", exc_info=True)
         log.debug("Peer cleanup loop ended")
 
-    def _get_peer_list(self) -> list[tuple[str, str]]:
-        """Return list of (username, ip) tuples."""
+    def get_peers_for_room(self, room_id: int) -> list[tuple[str, str]]:
         with self._lock:
-            return [(name, ip) for ip, (name, _) in self.peers.items()]
+            return [(name, ip) for ip, (name, _, room_ids) in self.peers.items()
+                    if room_id in room_ids]
+
+    def _get_peer_list(self) -> list[tuple[str, str]]:
+        with self._lock:
+            return [(name, ip) for ip, (name, _, _) in self.peers.items()]
 
 
 class ChatTransport:
-    # Sends and receives encrypted text chat messages via UDP broadcast
 
-    def __init__(self, username: str, encryption_keys: dict[int, bytes], active_rooms: set[int] = None, on_message=None):
+    def __init__(self, username: str, encryption_keys: dict[int, bytes],
+                 active_rooms: set[int] = None, on_message=None,
+                 peer_discovery: PeerDiscovery = None):
         self.username = username
-        self.keys = encryption_keys  # {room_id: key_bytes}
+        self.keys = encryption_keys
         self.active_rooms = active_rooms or set()
         self.local_ips = _get_all_local_ips()
-        self.broadcast_addrs = _get_broadcast_addresses()
-        self.on_message = on_message  # callback(sender_name, message_text, room_id)
+        self.on_message = on_message
+        self.peer_discovery = peer_discovery
         self._running = False
         log.info(f"ChatTransport started for user '{username}' (Rooms: {self.active_rooms})")
 
@@ -289,11 +372,10 @@ class ChatTransport:
         try:
             self._recv_sock.close()
         except Exception as e:
-            log.debug(f"Error closing chat receive socket: {e}")
+            log.debug(f"Error closing chat recv socket: {e}")
         log.info("ChatTransport stopped")
 
     def send_message(self, text: str, room_id: int):
-        """Broadcast an encrypted chat message to the specified room."""
         if room_id not in self.keys:
             log.warning(f"Cannot send chat message: no key for room {room_id}")
             return
@@ -308,12 +390,21 @@ class ChatTransport:
             room_byte = struct.pack("B", room_id)
             packet = MSG_CHAT + room_byte + encrypted
 
-            for addr in self.broadcast_addrs:
-                try:
-                    self._send_sock.sendto(packet, (addr, CHAT_PORT))
-                except Exception:
-                    pass
-            log.debug(f"Chat message sent (Room {room_id}): '{text[:50]}' ({len(packet)} bytes)")
+            if self.peer_discovery:
+                peers = self.peer_discovery.get_peers_for_room(room_id)
+                for peer_name, ip in peers:
+                    try:
+                        self._send_sock.sendto(packet, (ip, CHAT_PORT))
+                    except Exception:
+                        pass
+                log.debug(f"Chat sent (Room {room_id}) to {len(peers)} peers: '{text[:50]}'")
+            else:
+                for addr in _get_broadcast_addresses():
+                    try:
+                        self._send_sock.sendto(packet, (addr, CHAT_PORT))
+                    except Exception:
+                        pass
+                log.debug(f"Chat broadcast (Room {room_id}): '{text[:50]}'")
         except Exception as e:
             log.error(f"Failed to send chat message: {e}", exc_info=True)
 
@@ -362,15 +453,16 @@ class ChatTransport:
 
 
 class VoiceTransport:
-    # Sends and receives encrypted voice frames via UDP broadcast
 
-    def __init__(self, username: str, encryption_keys: dict[int, bytes], active_rooms: set[int] = None, on_voice=None):
+    def __init__(self, username: str, encryption_keys: dict[int, bytes],
+                 active_rooms: set[int] = None, on_voice=None,
+                 peer_discovery: PeerDiscovery = None):
         self.username = username
-        self.keys = encryption_keys  # {room_id: key_bytes}
+        self.keys = encryption_keys
         self.active_rooms = active_rooms or set()
         self.local_ips = _get_all_local_ips()
-        self.broadcast_addrs = _get_broadcast_addresses()
-        self.on_voice = on_voice  # callback(sender_name, voice_bytes, room_id)
+        self.on_voice = on_voice
+        self.peer_discovery = peer_discovery
         self._running = False
         log.info(f"VoiceTransport started for user '{username}' (Rooms: {self.active_rooms})")
 
@@ -401,11 +493,10 @@ class VoiceTransport:
         try:
             self._recv_sock.close()
         except Exception as e:
-            log.debug(f"Error closing voice receive socket: {e}")
+            log.debug(f"Error closing voice recv socket: {e}")
         log.info("VoiceTransport stopped")
 
     def send_voice(self, audio_data: bytes, room_id: int):
-        """Broadcast an encrypted voice frame to the specified room."""
         if room_id not in self.keys:
             return
 
@@ -418,11 +509,19 @@ class VoiceTransport:
             room_byte = struct.pack("B", room_id)
             packet = MSG_VOICE + room_byte + encrypted
 
-            for addr in self.broadcast_addrs:
-                try:
-                    self._send_sock.sendto(packet, (addr, VOICE_PORT))
-                except Exception:
-                    pass
+            if self.peer_discovery:
+                peers = self.peer_discovery.get_peers_for_room(room_id)
+                for peer_name, ip in peers:
+                    try:
+                        self._send_sock.sendto(packet, (ip, VOICE_PORT))
+                    except Exception:
+                        pass
+            else:
+                for addr in _get_broadcast_addresses():
+                    try:
+                        self._send_sock.sendto(packet, (addr, VOICE_PORT))
+                    except Exception:
+                        pass
         except Exception as e:
             log.error(f"Failed to send voice frame: {e}", exc_info=True)
 
