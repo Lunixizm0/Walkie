@@ -34,11 +34,11 @@ def derive_key(passphrase: str) -> bytes:
         raise
 
 
-def encrypt(data: bytes, key: bytes) -> bytes:
+def encrypt(data: bytes, key: bytes, aad: bytes = None) -> bytes:
     try:
         aesgcm = AESGCM(key)
         nonce = os.urandom(12)
-        ciphertext = aesgcm.encrypt(nonce, data, None)
+        ciphertext = aesgcm.encrypt(nonce, data, aad)
         log.debug(f"{len(data)} bytes encrypted -> {len(nonce) + len(ciphertext)} bytes")
         return nonce + ciphertext
     except Exception as e:
@@ -46,7 +46,7 @@ def encrypt(data: bytes, key: bytes) -> bytes:
         raise
 
 
-def decrypt(payload: bytes, key: bytes) -> bytes | None:
+def decrypt(payload: bytes, key: bytes, aad: bytes = None) -> bytes | None:
     if len(payload) < 12:
         log.warning(f"Decryption failed: data too short ({len(payload)} bytes, need at least 12)")
         return None
@@ -54,7 +54,7 @@ def decrypt(payload: bytes, key: bytes) -> bytes | None:
         aesgcm = AESGCM(key)
         nonce = payload[:12]
         ciphertext = payload[12:]
-        plaintext = aesgcm.decrypt(nonce, ciphertext, None)
+        plaintext = aesgcm.decrypt(nonce, ciphertext, aad)
         log.debug(f"{len(payload)} bytes decrypted -> {len(plaintext)} bytes")
         return plaintext
     except Exception as e:

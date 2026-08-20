@@ -124,7 +124,7 @@ def cmd_run(args):
             on_audio_captured=lambda data, room_id: voice_transport.send_voice(data, room_id)
         )
 
-        voice_transport.on_voice = lambda sender, data, room_id: audio_engine.play_audio(data)
+        voice_transport.on_voice = lambda sender, data, room_id: audio_engine.play_audio(data, sender)
 
         def handle_rooms_toggled(rooms: set[int]):
             log.info(f"Active rooms changed to {rooms}")

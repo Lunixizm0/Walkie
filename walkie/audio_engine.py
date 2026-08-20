@@ -1,6 +1,7 @@
 import collections
 import logging
 import threading
+import time
 
 import numpy as np
 import sounddevice as sd
@@ -24,6 +25,9 @@ JITTER_BUFFER_MIN = 4
 JITTER_BUFFER_MAX = 25
 
 VAD_RMS_THRESHOLD = _vad_cfg["rms_threshold"]
+
+DECODER_MAX_AGE = 60.0
+DECODER_MAX_COUNT = 20
 
 
 class JitterBuffer:
@@ -73,6 +77,11 @@ class AudioEngine:
         self._lock             = threading.Lock()
         self.enabled_rooms: set[int] = set()
         self.vad_enabled       = False
+
+        self._encoder = audio_codec.make_encoder()
+        self._decoders: dict[str, object] = {}
+        self._decoder_ts: dict[str, float] = {}
+        self._last_cleanup = time.monotonic()
 
         self._jitter_buffer = JitterBuffer()
 
@@ -151,17 +160,40 @@ class AudioEngine:
         except Exception as e:
             log.error(f"Failed to generate beep: {e}", exc_info=True)
 
-    def play_audio(self, encoded_bytes: bytes):
-        #Decode an Opus packet and add it to the jitter buffer
+    def play_audio(self, encoded_bytes: bytes, sender: str):
+        #Decode an Opus packet using a per-sender decoder and add to jitter buffer
         if self._playback_stream is None or not encoded_bytes:
             return
         try:
-            pcm_array = audio_codec.decode(encoded_bytes)
+            if sender not in self._decoders:
+                self._decoders[sender] = audio_codec.make_decoder()
+                log.debug(f"Created new decoder for sender '{sender}'")
+            self._decoder_ts[sender] = time.monotonic()
+
+            pcm_array = audio_codec.decode(self._decoders[sender], encoded_bytes)
             if len(pcm_array) == 0:
                 return
             self._jitter_buffer.push(pcm_array.reshape(-1, CHANNELS))
+            self._maybe_cleanup_decoders()
         except Exception as e:
             log.error(f"Audio decode/buffer error: {e}", exc_info=True)
+
+    def _maybe_cleanup_decoders(self):
+        now = time.monotonic()
+        if now - self._last_cleanup < 10.0:
+            return
+        self._last_cleanup = now
+        stale = [s for s, t in self._decoder_ts.items() if now - t > DECODER_MAX_AGE]
+        for s in stale:
+            del self._decoders[s]
+            del self._decoder_ts[s]
+            log.debug(f"Cleaned up stale decoder for '{s}'")
+        if len(self._decoders) > DECODER_MAX_COUNT:
+            oldest = sorted(self._decoder_ts, key=self._decoder_ts.get)[:len(self._decoders) - DECODER_MAX_COUNT]
+            for s in oldest:
+                del self._decoders[s]
+                del self._decoder_ts[s]
+                log.debug(f"Evicted excess decoder for '{s}'")
 
     def shutdown(self):
         log.info("AudioEngine shutting down...")
@@ -174,6 +206,8 @@ class AudioEngine:
         except Exception as e:
             log.error(f"Error closing playback stream: {e}", exc_info=True)
         self._jitter_buffer.clear()
+        self._decoders.clear()
+        self._decoder_ts.clear()
         log.info("AudioEngine shutdown complete")
 
     #  internal callbacks
@@ -192,7 +226,7 @@ class AudioEngine:
                 if rms < VAD_RMS_THRESHOLD:
                     return
 
-            encoded = audio_codec.encode(pcm_array)
+            encoded = audio_codec.encode(self._encoder, pcm_array)
             if encoded:
                 for rid in self.enabled_rooms:
                     self.on_audio_captured(encoded, rid)

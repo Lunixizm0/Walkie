@@ -141,7 +141,7 @@ class PeerDiscovery:
 
     def __init__(self, username: str, active_rooms: set[int] = None, on_peers_changed=None):
         self.username = username
-        self.active_rooms = active_rooms or {0}
+        self._active_rooms: tuple[int, ...] = tuple(active_rooms or {0})
         self.local_ips = _get_all_local_ips()
         self.broadcast_addrs = _get_broadcast_addresses()
         self.peers: dict[str, tuple[str, float, set[int]]] = {}
@@ -149,12 +149,17 @@ class PeerDiscovery:
         self._running = False
         self._lock = threading.Lock()
         self._pending_byes: set[int] = set()
-        log.info(f"PeerDiscovery started for user '{username}' (Rooms: {self.active_rooms})")
+        log.info(f"PeerDiscovery started for user '{username}' (Rooms: {self._active_rooms})")
+
+    @property
+    def active_rooms(self) -> set[int]:
+        return set(self._active_rooms)
 
     def set_active_rooms(self, rooms: set[int]):
+        old_rooms = set(self._active_rooms)
         new_rooms = set(rooms)
-        removed_rooms = self.active_rooms - new_rooms
-        self.active_rooms = new_rooms
+        removed_rooms = old_rooms - new_rooms
+        self._active_rooms = tuple(new_rooms)
 
         with self._lock:
             to_remove = []
@@ -198,8 +203,9 @@ class PeerDiscovery:
         log.info("PeerDiscovery stopping...")
         self._running = False
         try:
-            if self.active_rooms:
-                payload = _build_peer_packet(MSG_BYE, self.active_rooms, self.username)
+            rooms = self.active_rooms
+            if rooms:
+                payload = _build_peer_packet(MSG_BYE, rooms, self.username)
                 for addr in self.broadcast_addrs:
                     try:
                         self._send_sock.sendto(payload, (addr, DISCOVERY_PORT))
@@ -238,8 +244,9 @@ class PeerDiscovery:
                             pass
                     log.debug(f"Sent BYE for rooms: {byes_to_send}")
 
-                if self.active_rooms:
-                    payload = _build_peer_packet(MSG_HELLO, self.active_rooms, self.username)
+                rooms = self.active_rooms
+                if rooms:
+                    payload = _build_peer_packet(MSG_HELLO, rooms, self.username)
                     for addr in self.broadcast_addrs:
                         try:
                             self._send_sock.sendto(payload, (addr, DISCOVERY_PORT))
@@ -266,7 +273,8 @@ class PeerDiscovery:
                         continue
 
                     room_ids, name = parsed
-                    common_rooms = room_ids & self.active_rooms
+                    rooms = self.active_rooms
+                    common_rooms = room_ids & rooms
                     if not common_rooms:
                         continue
 
@@ -295,7 +303,8 @@ class PeerDiscovery:
                         continue
 
                     room_ids, name = parsed
-                    common_rooms = room_ids & self.active_rooms
+                    rooms = self.active_rooms
+                    common_rooms = room_ids & rooms
                     if not common_rooms:
                         continue
 
@@ -362,16 +371,20 @@ class ChatTransport:
                  peer_discovery: PeerDiscovery = None):
         self.username = username
         self.keys = encryption_keys
-        self.active_rooms = active_rooms or set()
+        self._active_rooms: tuple[int, ...] = tuple(active_rooms or set())
         self.local_ips = _get_all_local_ips()
         self.on_message = on_message
         self.peer_discovery = peer_discovery
         self._running = False
         self._dedup = _Deduplicator()
-        log.info(f"ChatTransport started for user '{username}' (Rooms: {self.active_rooms})")
+        log.info(f"ChatTransport started for user '{username}' (Rooms: {self._active_rooms})")
+
+    @property
+    def active_rooms(self) -> set[int]:
+        return set(self._active_rooms)
 
     def set_active_rooms(self, rooms: set[int]):
-        self.active_rooms = set(rooms)
+        self._active_rooms = tuple(rooms)
         self._dedup.clear()
         log.debug(f"ChatTransport active rooms changed to {rooms}")
 
@@ -411,7 +424,8 @@ class ChatTransport:
             msg_bytes = text.encode("utf-8")
             payload = struct.pack("B", len(name_bytes)) + name_bytes + msg_bytes
 
-            encrypted = encrypt(payload, self.keys[room_id])
+            aad = struct.pack("B", room_id)
+            encrypted = encrypt(payload, self.keys[room_id], aad=aad)
 
             room_byte = struct.pack("B", room_id)
             packet = MSG_CHAT + room_byte + encrypted
@@ -448,14 +462,16 @@ class ChatTransport:
                         continue
 
                     room_id = data[1]
-                    if room_id not in self.active_rooms:
+                    rooms = self.active_rooms
+                    if room_id not in rooms:
                         continue
 
                     if room_id not in self.keys:
                         continue
 
+                    aad = struct.pack("B", room_id)
                     encrypted = data[2:]
-                    plaintext = decrypt(encrypted, self.keys[room_id])
+                    plaintext = decrypt(encrypted, self.keys[room_id], aad=aad)
 
                     if plaintext is None:
                         log.debug(f"Received chat from {ip} but decryption failed (Room {room_id}, wrong key?)")
@@ -490,16 +506,20 @@ class VoiceTransport:
                  peer_discovery: PeerDiscovery = None):
         self.username = username
         self.keys = encryption_keys
-        self.active_rooms = active_rooms or set()
+        self._active_rooms: tuple[int, ...] = tuple(active_rooms or set())
         self.local_ips = _get_all_local_ips()
         self.on_voice = on_voice
         self.peer_discovery = peer_discovery
         self._running = False
         self._dedup = _Deduplicator()
-        log.info(f"VoiceTransport started for user '{username}' (Rooms: {self.active_rooms})")
+        log.info(f"VoiceTransport started for user '{username}' (Rooms: {self._active_rooms})")
+
+    @property
+    def active_rooms(self) -> set[int]:
+        return set(self._active_rooms)
 
     def set_active_rooms(self, rooms: set[int]):
-        self.active_rooms = set(rooms)
+        self._active_rooms = tuple(rooms)
         self._dedup.clear()
         log.debug(f"VoiceTransport active rooms changed to {rooms}")
 
@@ -537,7 +557,8 @@ class VoiceTransport:
             name_bytes = self.username.encode("utf-8")[:255]
             payload = struct.pack("B", len(name_bytes)) + name_bytes + audio_data
 
-            encrypted = encrypt(payload, self.keys[room_id])
+            aad = struct.pack("B", room_id)
+            encrypted = encrypt(payload, self.keys[room_id], aad=aad)
 
             room_byte = struct.pack("B", room_id)
             packet = MSG_VOICE + room_byte + encrypted
@@ -572,15 +593,16 @@ class VoiceTransport:
                         continue
 
                     room_id = data[1]
-
-                    if room_id not in self.active_rooms:
+                    rooms = self.active_rooms
+                    if room_id not in rooms:
                         continue
 
                     if room_id not in self.keys:
                         continue
 
+                    aad = struct.pack("B", room_id)
                     encrypted = data[2:]
-                    plaintext = decrypt(encrypted, self.keys[room_id])
+                    plaintext = decrypt(encrypted, self.keys[room_id], aad=aad)
 
                     if plaintext is None:
                         continue
