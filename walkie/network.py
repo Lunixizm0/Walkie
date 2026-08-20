@@ -132,6 +132,10 @@ class _Deduplicator:
         self._seen_set.add(h)
         return False
 
+    def clear(self):
+        self._seen.clear()
+        self._seen_set.clear()
+
 
 class PeerDiscovery:
 
@@ -368,6 +372,7 @@ class ChatTransport:
 
     def set_active_rooms(self, rooms: set[int]):
         self.active_rooms = set(rooms)
+        self._dedup.clear()
         log.debug(f"ChatTransport active rooms changed to {rooms}")
 
     def start(self):
@@ -495,6 +500,7 @@ class VoiceTransport:
 
     def set_active_rooms(self, rooms: set[int]):
         self.active_rooms = set(rooms)
+        self._dedup.clear()
         log.debug(f"VoiceTransport active rooms changed to {rooms}")
 
     def start(self):
