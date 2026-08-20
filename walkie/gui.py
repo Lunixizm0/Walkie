@@ -453,9 +453,8 @@ class PTTManager:
         center_section.pack(side="left", fill="y", padx=10)
 
         self._room_toggles = {}
-        for room in rooms:
-            rid = room["id"]
-            name = room["name"]
+        for rid in rooms:
+            name = ROOM_NAMES.get(rid, str(rid))
             var = tk.BooleanVar(value=True)
             cb = tk.Checkbutton(center_section, text=name, variable=var,
                                 font=fonts["small"], bg=PTT_IDLE_BG, fg=FG_DIM,
