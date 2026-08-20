@@ -73,20 +73,19 @@ Walkie requires system libraries for audio and GUI tray support. Install them be
 
 ```bash
 sudo apt install -y portaudio19-dev gobject-introspection \
-  libgirepository2.0-dev libglib2.0-dev pkg-config python3-dev \
-  libgirepository2.0-dev
+  libgirepository1.0-dev libglib2.0-dev pkg-config python3-dev python3-tk
 ```
 
 **Arch Linux:**
 
 ```bash
-sudo pacman -S --needed portaudio gobject-introspection pkgconf python
+sudo pacman -S --needed portaudio gobject-introspection pkgconf python tk
 ```
 
 **macOS (Homebrew):**
 
 ```bash
-brew install portaudio gobject-introspection pkg-config
+brew install portaudio gobject-introspection pkg-config tcl-tk
 ```
 
 **Windows:**
