@@ -1,3 +1,4 @@
+import collections
 import logging
 import socket
 import struct
@@ -111,6 +112,25 @@ def _parse_peer_packet(data: bytes) -> tuple[set[int], str] | None:
 
     username = data[2 + count:].decode("utf-8", errors="replace")
     return room_ids, username
+
+
+class _Deduplicator:
+    """Tracks recent packet hashes to filter out duplicates from multiple rooms."""
+
+    def __init__(self, max_size: int = 200):
+        self._seen: collections.deque = collections.deque(maxlen=max_size)
+        self._seen_set: set[int] = set()
+
+    def is_duplicate(self, data: bytes) -> bool:
+        h = hash(data)
+        if h in self._seen_set:
+            return True
+        if len(self._seen) == self._seen.maxlen:
+            old = self._seen[0]
+            self._seen_set.discard(old)
+        self._seen.append(h)
+        self._seen_set.add(h)
+        return False
 
 
 class PeerDiscovery:
@@ -343,6 +363,7 @@ class ChatTransport:
         self.on_message = on_message
         self.peer_discovery = peer_discovery
         self._running = False
+        self._dedup = _Deduplicator()
         log.info(f"ChatTransport started for user '{username}' (Rooms: {self.active_rooms})")
 
     def set_active_rooms(self, rooms: set[int]):
@@ -438,6 +459,11 @@ class ChatTransport:
                     name_len = plaintext[0]
                     sender = plaintext[1:1 + name_len].decode("utf-8", errors="replace")
                     message = plaintext[1 + name_len:].decode("utf-8", errors="replace")
+
+                    if self._dedup.is_duplicate(plaintext):
+                        log.debug(f"Chat duplicate dropped from '{sender}' ({ip}) (Room {room_id})")
+                        continue
+
                     log.debug(f"Chat received from '{sender}' ({ip}) (Room {room_id}): '{message[:50]}'")
 
                     if self.on_message:
@@ -464,6 +490,7 @@ class VoiceTransport:
         self.on_voice = on_voice
         self.peer_discovery = peer_discovery
         self._running = False
+        self._dedup = _Deduplicator()
         log.info(f"VoiceTransport started for user '{username}' (Rooms: {self.active_rooms})")
 
     def set_active_rooms(self, rooms: set[int]):
@@ -555,6 +582,9 @@ class VoiceTransport:
                     name_len = plaintext[0]
                     sender = plaintext[1:1 + name_len].decode("utf-8", errors="replace")
                     audio = plaintext[1 + name_len:]
+
+                    if self._dedup.is_duplicate(plaintext):
+                        continue
 
                     if self.on_voice:
                         self.on_voice(sender, audio, room_id)
