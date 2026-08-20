@@ -37,9 +37,10 @@ class RedactingFilter(logging.Filter):
 
 def cmd_run(args):
     from .audio_engine import AudioEngine
+    from .config import get_config
     from .crypto_utils import derive_key, get_general_key
     from .gui import ROOM_NAMES, StartupDialog, WalkieTalkieGUI
-    from .network import ChatTransport, PeerDiscovery, VoiceTransport
+    from .network import MSG_CHAT, MSG_VOICE, PeerDiscovery, Transport
 
     log_dir = Path.home() / ".config" / "walkie"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -96,35 +97,45 @@ def cmd_run(args):
 
     try:
         active_rooms_set = set(encryption_keys.keys())
+        net_cfg = get_config()["network"]
 
         log.info("Starting PeerDiscovery...")
         peer_discovery = PeerDiscovery(
             username=username,
-            active_rooms=active_rooms_set
+            active_rooms=active_rooms_set,
+            discovery_port=net_cfg["discovery_port"],
+            hello_interval=net_cfg["hello_interval"],
+            peer_timeout=net_cfg["peer_timeout"],
         )
 
         log.info("Starting VoiceTransport...")
-        voice_transport = VoiceTransport(
+        voice_transport = Transport(
             username=username,
             encryption_keys=encryption_keys,
             active_rooms=active_rooms_set,
             peer_discovery=peer_discovery,
+            port=net_cfg["voice_port"],
+            message_type=MSG_VOICE,
+            fragmented=False,
         )
 
         log.info("Starting ChatTransport...")
-        chat_transport = ChatTransport(
+        chat_transport = Transport(
             username=username,
             encryption_keys=encryption_keys,
             active_rooms=active_rooms_set,
             peer_discovery=peer_discovery,
+            port=net_cfg["chat_port"],
+            message_type=MSG_CHAT,
+            fragmented=True,
         )
 
         log.info("Starting AudioEngine...")
         audio_engine = AudioEngine(
-            on_audio_captured=lambda data, room_id: voice_transport.send_voice(data, room_id)
+            on_audio_captured=lambda data, room_id: voice_transport.send(data, room_id)
         )
 
-        voice_transport.on_voice = lambda sender, data, room_id: audio_engine.play_audio(data, sender)
+        voice_transport.on_receive = lambda sender, data, room_id: audio_engine.play_audio(data, sender)
 
         def handle_rooms_toggled(rooms: set[int]):
             log.info(f"Active rooms changed to {rooms}")
@@ -137,7 +148,7 @@ def cmd_run(args):
         gui = WalkieTalkieGUI(
             username=username,
             active_rooms=active_rooms,
-            on_send_chat=lambda text, room_id: chat_transport.send_message(text, room_id),
+            on_send_chat=lambda text, room_id: chat_transport.send(text.encode("utf-8"), room_id),
             on_ptt_start=lambda enabled_rooms: audio_engine.start_capture(enabled_rooms),
             on_ptt_stop=lambda: audio_engine.stop_capture(),
             on_rooms_toggled=handle_rooms_toggled,
@@ -153,14 +164,15 @@ def cmd_run(args):
             except Exception as e:
                 log.error(f"on_peers_changed callback error: {e}", exc_info=True)
 
-        def on_chat_received(sender, message, room_id):
+        def on_chat_received(sender, data, room_id):
             try:
+                message = data.decode("utf-8", errors="replace")
                 gui.append_chat(sender, message, room_id, is_self=False)
                 log.debug(f"Chat received from '{sender}': '{message[:50]}'")
             except Exception as e:
                 log.error(f"on_chat_received callback error: {e}", exc_info=True)
 
-        chat_transport.on_message = on_chat_received
+        chat_transport.on_receive = on_chat_received
         peer_discovery.on_peers_changed = on_peers_changed
 
     except Exception as e:
