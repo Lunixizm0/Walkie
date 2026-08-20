@@ -477,31 +477,36 @@ class WalkieTalkieGUI:
                 if self._is_closing or not self.root.winfo_exists():
                     return
 
-                old_peer_ips = set()
+                new_ips = {ip for _, ip in peers}
+
+                widgets_by_ip = {}
                 for widget in self.peer_widgets_frame.winfo_children():
                     if isinstance(widget, tk.Frame):
                         children = widget.winfo_children()
                         if len(children) >= 3:
-                            old_peer_ips.add(children[2].cget("text"))
+                            ip = children[2].cget("text")
+                            widgets_by_ip[ip] = widget
 
-                for widget in self.peer_widgets_frame.winfo_children():
-                    widget.destroy()
-
-                if not peers:
-                    tk.Label(self.peer_widgets_frame, text="No peers found yet...",
-                             font=self.font_small, fg=FG_DIM, bg=BG_SIDEBAR).pack(pady=20)
-                    return
+                for ip in set(widgets_by_ip) - new_ips:
+                    widgets_by_ip[ip].destroy()
+                    del widgets_by_ip[ip]
 
                 for name, ip in peers:
+                    if ip in widgets_by_ip:
+                        continue
                     row = tk.Frame(self.peer_widgets_frame, bg=BG_SIDEBAR)
                     row.pack(fill="x", pady=2)
                     tk.Label(row, text="+", font=("Segoe UI", 8), fg=PEER_DOT_ONLINE, bg=BG_SIDEBAR).pack(side="left", padx=(5, 8))
                     tk.Label(row, text=name, font=self.font_peer, fg=FG_TEXT, bg=BG_SIDEBAR).pack(side="left")
                     tk.Label(row, text=ip, font=self.font_small, fg=FG_DIM, bg=BG_SIDEBAR).pack(side="right", padx=5)
 
-                    if ip not in old_peer_ips and self.on_play_beep:
+                    if self.on_play_beep:
                         self.on_play_beep(880, 50)
                         self.root.after(100, lambda: self.on_play_beep(1046, 50))
+
+                if not peers and not widgets_by_ip:
+                    tk.Label(self.peer_widgets_frame, text="No peers found yet...",
+                             font=self.font_small, fg=FG_DIM, bg=BG_SIDEBAR).pack(pady=20)
 
                 log.debug(f"Peer list: {len(peers)} peers")
             except Exception as e:
