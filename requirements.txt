@@ -1,6 +1,0 @@
-sounddevice
-numpy
-cryptography
-pystray
-Pillow
-av

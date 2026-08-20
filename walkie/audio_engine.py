@@ -1,46 +1,40 @@
-"""
-Walkie-Talkie uygulaması için ses motoru.
-Mikrofon yakalama ve hoparlör çalma için sounddevice kullanır.
-Opus codec (PyAV) ve jitter buffer içerir.
-"""
-
 import collections
-import threading
 import logging
+import threading
+
 import numpy as np
 import sounddevice as sd
-import audio_codec
+
+from . import audio_codec
+from .config import get_audio_config, get_vad_config
 
 log = logging.getLogger(__name__)
 
-# Ses parametreleri
-SAMPLE_RATE = 48000
-CHANNELS    = 1
-DTYPE       = "int16"
+_audio_cfg = get_audio_config()
+_vad_cfg = get_vad_config()
 
-# Opus frame: 20ms @ 48kHz = 960 örnek
-FRAME_DURATION_MS = 20
-BLOCK_SIZE = audio_codec.FRAME_SAMPLES   # 960
+SAMPLE_RATE = _audio_cfg["sample_rate"]
+CHANNELS = _audio_cfg["channels"]
+DTYPE = "int16"
 
-# Jitter buffer ayarları
-JITTER_BUFFER_MIN = 4   # 80ms başlangıç gecikmesi (4 × 20ms)
-JITTER_BUFFER_MAX = 25  # maks 500ms tampon
+FRAME_DURATION_MS = _audio_cfg["frame_duration_ms"]
+BLOCK_SIZE = audio_codec.FRAME_SAMPLES
 
-# VAD eşiği
-VAD_RMS_THRESHOLD = 50
+JITTER_BUFFER_MIN = 4
+JITTER_BUFFER_MAX = 25
+
+VAD_RMS_THRESHOLD = _vad_cfg["rms_threshold"]
 
 
 class JitterBuffer:
-    """
-    Gelen ses paketlerini tamponlayarak kesintisiz çalma sağlar.
-    """
+    # Buffers incoming audio packets for seamless playback
 
     def __init__(self, min_depth: int = JITTER_BUFFER_MIN, max_depth: int = JITTER_BUFFER_MAX):
         self._buffer: collections.deque = collections.deque(maxlen=max_depth)
         self._min_depth = min_depth
         self._started   = False
         self._lock      = threading.Lock()
-        log.info(f"JitterBuffer oluşturuldu (min={min_depth}, maks={max_depth})")
+        log.info(f"JitterBuffer created (min={min_depth}, max={max_depth})")
 
     def push(self, audio_array: np.ndarray):
         with self._lock:
@@ -51,7 +45,7 @@ class JitterBuffer:
             if not self._started:
                 if len(self._buffer) >= self._min_depth:
                     self._started = True
-                    log.debug(f"JitterBuffer çalmaya başladı ({len(self._buffer)} paket birikti)")
+                    log.debug(f"JitterBuffer started playing ({len(self._buffer)} packets buffered)")
                 else:
                     return None
 
@@ -59,7 +53,7 @@ class JitterBuffer:
                 return self._buffer.popleft()
             else:
                 self._started = False
-                log.debug("JitterBuffer tükendi, yeniden birikme bekleniyor")
+                log.debug("JitterBuffer drained, waiting for buffer to refill")
                 return None
 
     def clear(self):
@@ -69,10 +63,7 @@ class JitterBuffer:
 
 
 class AudioEngine:
-    """
-    Mikrofon yakalama ve ses çalmayı yönetir.
-    Opus codec (PyAV) ve jitter buffer içerir.
-    """
+    #Manages microphone capture and audio playback
 
     def __init__(self, on_audio_captured=None):
         self.on_audio_captured = on_audio_captured
@@ -80,12 +71,12 @@ class AudioEngine:
         self._capture_stream   = None
         self._playback_stream  = None
         self._lock             = threading.Lock()
-        self.active_room_id    = 0
+        self.enabled_rooms: set[int] = set()
         self.vad_enabled       = False
 
         self._jitter_buffer = JitterBuffer()
 
-        log.info(f"SesMotoru başlatılıyor — Opus @ {SAMPLE_RATE}Hz, {BLOCK_SIZE} örnek/frame ({FRAME_DURATION_MS}ms)")
+        log.info(f"AudioEngine starting - Opus @ {SAMPLE_RATE}Hz, {BLOCK_SIZE} samples/frame ({FRAME_DURATION_MS}ms)")
 
         try:
             self._playback_stream = sd.OutputStream(
@@ -96,16 +87,16 @@ class AudioEngine:
                 callback=self._playback_callback,
             )
             self._playback_stream.start()
-            log.info("Çalma akışı açıldı (jitter buffer + Opus)")
+            log.info("Playback stream opened (jitter buffer + Opus)")
         except Exception as e:
-            log.error(f"Çalma cihazı açılamadı: {e}", exc_info=True)
+            log.error(f"Failed to open playback device: {e}", exc_info=True)
             self._playback_stream = None
 
-    def start_capture(self, room_id: int):
+    def start_capture(self, enabled_rooms: set[int]):
         if self._capturing:
             return
         self._capturing     = True
-        self.active_room_id = room_id
+        self.enabled_rooms  = set(enabled_rooms)
         try:
             self._capture_stream = sd.InputStream(
                 samplerate=SAMPLE_RATE,
@@ -115,9 +106,9 @@ class AudioEngine:
                 callback=self._capture_callback,
             )
             self._capture_stream.start()
-            log.info("Mikrofon yakalama başladı (Bas-Konuş aktif)")
+            log.info("Microphone capture started (Push-to-Talk active)")
         except Exception as e:
-            log.error(f"Yakalama cihazı açılamadı: {e}", exc_info=True)
+            log.error(f"Failed to open capture device: {e}", exc_info=True)
             self._capturing = False
 
     def stop_capture(self):
@@ -129,19 +120,19 @@ class AudioEngine:
                 self._capture_stream.stop()
                 self._capture_stream.close()
                 self._capture_stream = None
-                log.info("Mikrofon yakalama durdu")
+                log.info("Microphone capture stopped")
         except Exception as e:
-            log.error(f"Yakalama akışı durdurulurken hata: {e}", exc_info=True)
+            log.error(f"Error stopping capture stream: {e}", exc_info=True)
 
-    def set_vad_enabled(self, enabled: bool, room_id: int = 0):
+    def set_vad_enabled(self, enabled: bool, enabled_rooms: set[int] = None):
         self.vad_enabled = enabled
         if enabled:
-            self.start_capture(room_id)
+            self.start_capture(enabled_rooms or set())
         else:
             self.stop_capture()
 
     def play_beep(self, frequency: float, duration_ms: int):
-        """Bildirim sesi üretir ve jitter buffer'a iter."""
+        # Generate a notification tone and push it into the jitter buffer
         if self._playback_stream is None:
             return
         try:
@@ -158,12 +149,10 @@ class AudioEngine:
                     chunk = padded
                 self._jitter_buffer.push(chunk.reshape(-1, CHANNELS))
         except Exception as e:
-            log.error(f"Bip sesi üretilemedi: {e}", exc_info=True)
+            log.error(f"Failed to generate beep: {e}", exc_info=True)
 
     def play_audio(self, encoded_bytes: bytes):
-        """
-        Opus paketini çözer ve jitter buffer'a ekler.
-        """
+        #Decode an Opus packet and add it to the jitter buffer
         if self._playback_stream is None or not encoded_bytes:
             return
         try:
@@ -172,10 +161,10 @@ class AudioEngine:
                 return
             self._jitter_buffer.push(pcm_array.reshape(-1, CHANNELS))
         except Exception as e:
-            log.error(f"Ses çözme/tamponlama hatası: {e}", exc_info=True)
+            log.error(f"Audio decode/buffer error: {e}", exc_info=True)
 
     def shutdown(self):
-        log.info("SesMotoru kapatılıyor...")
+        log.info("AudioEngine shutting down...")
         self.stop_capture()
         try:
             if self._playback_stream:
@@ -183,16 +172,16 @@ class AudioEngine:
                 self._playback_stream.close()
                 self._playback_stream = None
         except Exception as e:
-            log.error(f"Çalma akışı kapatılırken hata: {e}", exc_info=True)
+            log.error(f"Error closing playback stream: {e}", exc_info=True)
         self._jitter_buffer.clear()
-        log.info("SesMotoru kapatma tamamlandı")
+        log.info("AudioEngine shutdown complete")
 
-    # ── Dahili callback'ler ────────────────────────────────────
+    #  internal callbacks
 
     def _capture_callback(self, indata, frames, time_info, status):
         try:
             if status:
-                log.warning(f"Yakalama durumu: {status}")
+                log.warning(f"Capture status: {status}")
             if not self._capturing or not self.on_audio_captured:
                 return
 
@@ -205,14 +194,15 @@ class AudioEngine:
 
             encoded = audio_codec.encode(pcm_array)
             if encoded:
-                self.on_audio_captured(encoded, self.active_room_id)
+                for rid in self.enabled_rooms:
+                    self.on_audio_captured(encoded, rid)
         except Exception as e:
-            log.error(f"Yakalama callback hatası: {e}", exc_info=True)
+            log.error(f"Capture callback error: {e}", exc_info=True)
 
     def _playback_callback(self, outdata, frames, time_info, status):
         try:
             if status:
-                log.debug(f"Çalma durumu: {status}")
+                log.debug(f"Playback status: {status}")
             data = self._jitter_buffer.pop()
             if data is not None:
                 outdata[:] = data
@@ -220,4 +210,4 @@ class AudioEngine:
                 outdata[:] = 0
         except Exception as e:
             outdata[:] = 0
-            log.error(f"Çalma callback hatası: {e}", exc_info=True)
+            log.error(f"Playback callback error: {e}", exc_info=True)

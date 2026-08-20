@@ -1,15 +1,14 @@
-"""
-Walkie-Talkie uygulaması için arayüz.
-"""
-
-import tkinter as tk
-from tkinter import scrolledtext, font as tkfont
-import time
-import threading
 import logging
+import threading
+import time
+import tkinter as tk
+from tkinter import font as tkfont
+from tkinter import scrolledtext
 
 import pystray
 from PIL import Image, ImageDraw
+
+from .config import get_room_names, get_rooms, get_config
 
 log = logging.getLogger(__name__)
 
@@ -30,12 +29,14 @@ PTT_IDLE_BG = "#1c2a1c"
 PTT_ACTIVE_BG = "#3a1515"
 PEER_DOT_ONLINE = "#4ade80"
 
+ROOM_NAMES = get_room_names()
+
 
 class StartupDialog(tk.Tk):
     def __init__(self):
         try:
             super().__init__()
-            self.title("Walkie-Talkie · Bağlan")
+            self.title("Walkie-Talkie")
             self.configure(bg=BG_DARK)
             self.resizable(False, False)
             self.result = None
@@ -50,47 +51,45 @@ class StartupDialog(tk.Tk):
 
             header = tk.Frame(self, bg=BG_DARK)
             header.pack(fill="x", padx=30, pady=(25, 5))
-            tk.Label(header, text="📻", font=("Segoe UI Emoji", 32), bg=BG_DARK).pack()
             tk.Label(header, text="Walkie-Talkie", font=title_font,
                      fg=FG_ACCENT_LIGHT, bg=BG_DARK).pack()
 
             form = tk.Frame(self, bg=BG_DARK)
             form.pack(fill="x", padx=40, pady=(5, 10))
 
-            tk.Label(form, text="Adınız", font=label_font, fg=FG_DIM,
+            tk.Label(form, text="Your Name", font=label_font, fg=FG_DIM,
                      bg=BG_DARK, anchor="w").pack(fill="x")
             self.name_entry = tk.Entry(form, font=entry_font, bg=BG_INPUT, fg=FG_TEXT,
                                        insertbackground=FG_TEXT, relief="flat", bd=0)
             self.name_entry.pack(fill="x", ipady=8, pady=(2, 12))
             self.name_entry.focus_set()
 
-            tk.Label(form, text="Oda Seçimi", font=label_font, fg=FG_DIM,
+            tk.Label(form, text="Room Selection", font=label_font, fg=FG_DIM,
                      bg=BG_DARK, anchor="w").pack(fill="x", pady=(10, 5))
 
-            self.var_genel = tk.BooleanVar(value=True)
-            self.var_ogretmenler = tk.BooleanVar(value=False)
-            self.var_thinktank = tk.BooleanVar(value=False)
+            rooms = get_rooms()
+            cfg = get_config()
+            room_passwords = {r["id"]: r.get("password", "") for r in cfg["rooms"]}
+            self.room_vars = {}
+            self.room_checkbuttons = {}
 
-            tk.Checkbutton(form, text="Genel (Şifresiz)", variable=self.var_genel,
-                           bg=BG_DARK, fg=FG_TEXT, selectcolor=BG_INPUT, font=label_font,
-                           activebackground=BG_DARK, activeforeground=FG_TEXT).pack(anchor="w", pady=2)
-            tk.Checkbutton(form, text="Öğretmenler Arası", variable=self.var_ogretmenler,
-                           bg=BG_DARK, fg=FG_TEXT, selectcolor=BG_INPUT, font=label_font,
-                           activebackground=BG_DARK, activeforeground=FG_TEXT).pack(anchor="w", pady=2)
-            tk.Checkbutton(form, text="ThinkTank", variable=self.var_thinktank,
-                           bg=BG_DARK, fg=FG_TEXT, selectcolor=BG_INPUT, font=label_font,
-                           activebackground=BG_DARK, activeforeground=FG_TEXT).pack(anchor="w", pady=2)
+            for room in rooms:
+                rid = room["id"]
+                name = room["name"]
+                var = tk.BooleanVar(value=True)
+                self.room_vars[rid] = var
 
-            tk.Frame(form, bg=BG_DARK, height=8).pack()
-            tk.Label(form, text="Öğretmenler Arası / ThinkTank şifresi:",
-                     font=label_font, fg=FG_DIM, bg=BG_DARK, anchor="w").pack(fill="x")
-            self.pass_entry = tk.Entry(form, font=entry_font, bg=BG_INPUT, fg=FG_TEXT,
-                                       insertbackground=FG_TEXT, relief="flat", bd=0, show="•")
-            self.pass_entry.pack(fill="x", ipady=8, pady=(2, 12))
+                label_text = name
+                cb = tk.Checkbutton(form, text=label_text, variable=var,
+                                    bg=BG_DARK, fg=FG_TEXT, selectcolor=BG_INPUT,
+                                    font=label_font, activebackground=BG_DARK,
+                                    activeforeground=FG_TEXT)
+                cb.pack(anchor="w", pady=2)
+                self.room_checkbuttons[rid] = cb
 
             tk.Frame(form, bg=BG_DARK, height=10).pack()
 
-            self.join_btn = tk.Button(form, text="Kanala Katıl", font=label_font,
+            self.join_btn = tk.Button(form, text="Join Channel", font=label_font,
                                       bg=FG_ACCENT, fg="white", activebackground=FG_ACCENT_LIGHT,
                                       activeforeground="white", relief="flat", bd=0, cursor="hand2",
                                       command=self._on_join)
@@ -99,7 +98,6 @@ class StartupDialog(tk.Tk):
             self.bind("<Return>", lambda e: self._on_join())
             self.protocol("WM_DELETE_WINDOW", self._on_close)
 
-            # İçerik yerleştikten sonra gerçek boyutu hesapla ve ortala
             self.update_idletasks()
             w = self.winfo_reqwidth()
             h = self.winfo_reqheight()
@@ -107,13 +105,10 @@ class StartupDialog(tk.Tk):
             y = (self.winfo_screenheight() - h) // 2
             self.geometry(f"{w}x{h}+{x}+{y}")
 
-            log.info("Giriş penceresi gösterildi")
+            log.info("Login dialog shown")
         except Exception as e:
-            log.error(f"Giriş penceresi hatası: {e}", exc_info=True)
+            log.error(f"Login dialog error: {e}", exc_info=True)
             self.result = None
-
-    # Geçerli şifre — sadece bu kabul edilir
-    _CORRECT_PASSWORD = "fatih"
 
     def _on_join(self):
         try:
@@ -123,34 +118,23 @@ class StartupDialog(tk.Tk):
                 self.after(800, lambda: self.name_entry.config(bg=BG_INPUT))
                 return
 
-            needs_password = self.var_ogretmenler.get() or self.var_thinktank.get()
-            passphrase = self.pass_entry.get().strip()
-
-            if needs_password:
-                if passphrase != self._CORRECT_PASSWORD:
-                    # Yanlış veya boş şifre — kutuyu kırmızı yap
-                    self.pass_entry.config(bg="#3a1515")
-                    self.after(800, lambda: self.pass_entry.config(bg=BG_INPUT))
-                    log.warning("Yanlış şifre girildi")
-                    return
-
             rooms = {}
-            if self.var_genel.get():
-                rooms[0] = ""
-            if self.var_ogretmenler.get():
-                rooms[1] = passphrase
-            if self.var_thinktank.get():
-                rooms[2] = passphrase
+            cfg = get_config()
+            room_passwords = {r["id"]: r.get("password", "") for r in cfg["rooms"]}
+
+            for rid, var in self.room_vars.items():
+                if var.get():
+                    rooms[rid] = room_passwords.get(rid, "")
 
             if not rooms:
                 return
 
             self.result = (name, rooms)
-            log.info(f"Kullanıcı '{name}' {list(rooms.keys())} odalarına katıldı")
+            log.info(f"User '{name}' joined rooms {list(rooms.keys())}")
             self.quit()
             self.destroy()
         except Exception as e:
-            log.error(f"_on_join hatası: {e}", exc_info=True)
+            log.error(f"_on_join error: {e}", exc_info=True)
 
     def _on_close(self):
         self.result = None
@@ -158,27 +142,19 @@ class StartupDialog(tk.Tk):
         self.destroy()
 
 
-from tkinter import ttk
-
-ROOM_NAMES = {
-    0: "Genel",
-    1: "Öğretmenler Arası",
-    2: "ThinkTank"
-}
-
-
 class WalkieTalkieGUI:
-    def __init__(self, username: str, active_rooms: list, on_send_chat=None,
-                 on_ptt_start=None, on_ptt_stop=None, on_channel_changed=None,
-                 on_vad_toggled=None, on_play_beep=None, on_close=None):
+    def __init__(self, username, active_rooms, on_send_chat=None,
+                 on_ptt_start=None, on_ptt_stop=None,
+                 on_rooms_toggled=None, on_vad_toggled=None, on_play_beep=None,
+                 on_close=None):
         try:
             self.username = username
             self.active_rooms = active_rooms
-            self.current_room_id = active_rooms[0] if active_rooms else 0
+            self.enabled_rooms = set(active_rooms)
             self.on_send_chat = on_send_chat
             self.on_ptt_start = on_ptt_start
             self.on_ptt_stop = on_ptt_stop
-            self.on_channel_changed = on_channel_changed
+            self.on_rooms_toggled = on_rooms_toggled
             self.on_vad_toggled = on_vad_toggled
             self.on_play_beep = on_play_beep
             self.on_close = on_close
@@ -191,12 +167,14 @@ class WalkieTalkieGUI:
             self.vad_state = False
 
             self.root = tk.Tk()
-            self.root.title(f"Walkie-Talkie · {username}")
+            self.root.title(f"Walkie-Talkie - {username}")
             self.root.configure(bg=BG_DARK)
             self.root.minsize(800, 550)
 
-            # Ekran boyutuna göre başlat — maximize en güvenli
-            self.root.state('zoomed')
+            try:
+                self.root.state("zoomed")
+            except tk.TclError:
+                self.root.attributes("-zoomed", True)
 
             self.font_title = tkfont.Font(family="Segoe UI", size=13, weight="bold")
             self.font_body = tkfont.Font(family="Segoe UI", size=11)
@@ -209,18 +187,16 @@ class WalkieTalkieGUI:
             self._build_layout()
             self._bind_keys()
             self.root.protocol("WM_DELETE_WINDOW", self._on_window_closing)
-            # Pencere gerçek boyutuyla ortala
             self.root.update_idletasks()
-            log.info(f"Arayüz '{username}' için başlatıldı")
+            log.info(f"GUI started for user '{username}'")
         except Exception as e:
-            log.error(f"Arayüz başlatılamadı: {e}", exc_info=True)
+            log.error(f"Failed to start GUI: {e}", exc_info=True)
             raise
 
     def _build_layout(self):
         main = tk.Frame(self.root, bg=BG_DARK)
         main.pack(fill="both", expand=True)
 
-        # Sol kenar çubuğu
         sidebar = tk.Frame(main, bg=BG_SIDEBAR, width=220)
         sidebar.pack(side="left", fill="y")
         sidebar.pack_propagate(False)
@@ -228,7 +204,7 @@ class WalkieTalkieGUI:
         sb_header = tk.Frame(sidebar, bg=BG_HEADER, height=56)
         sb_header.pack(fill="x")
         sb_header.pack_propagate(False)
-        tk.Label(sb_header, text="📡  Çevrimiçi Eşler", font=self.font_title,
+        tk.Label(sb_header, text="Online Peers", font=self.font_title,
                  fg=FG_ACCENT_LIGHT, bg=BG_HEADER).pack(side="left", padx=15, pady=12)
 
         tk.Frame(sidebar, bg=BORDER_COLOR, height=1).pack(fill="x")
@@ -238,21 +214,45 @@ class WalkieTalkieGUI:
 
         you_frame = tk.Frame(self.peers_frame, bg=BG_SIDEBAR)
         you_frame.pack(fill="x", pady=(0, 8))
-        tk.Label(you_frame, text="●", font=("Segoe UI", 8), fg=FG_GREEN, bg=BG_SIDEBAR).pack(side="left", padx=(5, 8))
-        tk.Label(you_frame, text=f"{self.username} (Sen)", font=self.font_peer, fg=FG_TEXT, bg=BG_SIDEBAR).pack(side="left")
+        tk.Label(you_frame, text="+", font=("Segoe UI", 8), fg=FG_GREEN, bg=BG_SIDEBAR).pack(side="left", padx=(5, 8))
+        tk.Label(you_frame, text=f"{self.username} (You)", font=self.font_peer, fg=FG_TEXT, bg=BG_SIDEBAR).pack(side="left")
 
         tk.Frame(self.peers_frame, bg=BORDER_COLOR, height=1).pack(fill="x", pady=5)
 
         self.peer_widgets_frame = tk.Frame(self.peers_frame, bg=BG_SIDEBAR)
         self.peer_widgets_frame.pack(fill="both", expand=True)
 
-        self.no_peers_label = tk.Label(self.peer_widgets_frame, text="Eşler aranıyor…",
+        self.no_peers_label = tk.Label(self.peer_widgets_frame, text="Searching for peers...",
                                        font=self.font_small, fg=FG_DIM, bg=BG_SIDEBAR)
         self.no_peers_label.pack(pady=20)
 
+        tk.Frame(sidebar, bg=BORDER_COLOR, height=1).pack(fill="x")
+
+        ch_header = tk.Frame(sidebar, bg=BG_HEADER, height=40)
+        ch_header.pack(fill="x")
+        ch_header.pack_propagate(False)
+        tk.Label(ch_header, text="Channels", font=self.font_title,
+                 fg=FG_ACCENT_LIGHT, bg=BG_HEADER).pack(side="left", padx=15, pady=8)
+
+        tk.Frame(sidebar, bg=BORDER_COLOR, height=1).pack(fill="x")
+
+        self.channels_frame = tk.Frame(sidebar, bg=BG_SIDEBAR)
+        self.channels_frame.pack(fill="x", padx=10, pady=8)
+
+        self._room_checkbuttons = {}
+        for rid in self.active_rooms:
+            var = tk.BooleanVar(value=True)
+            cb = tk.Checkbutton(
+                self.channels_frame, text=ROOM_NAMES.get(rid, f"Room {rid}"),
+                variable=var, bg=BG_SIDEBAR, fg=FG_TEXT, selectcolor=BG_INPUT,
+                font=self.font_body, activebackground=BG_SIDEBAR,
+                activeforeground=FG_TEXT,
+                command=lambda r=rid, v=var: self._on_room_toggle(r, v))
+            cb.pack(anchor="w", pady=2)
+            self._room_checkbuttons[rid] = (var, cb)
+
         tk.Frame(main, bg=BORDER_COLOR, width=1).pack(side="left", fill="y")
 
-        # Sağ alan
         right = tk.Frame(main, bg=BG_DARK)
         right.pack(side="left", fill="both", expand=True)
 
@@ -260,54 +260,26 @@ class WalkieTalkieGUI:
         chat_header.pack(fill="x")
         chat_header.pack_propagate(False)
 
-        tk.Label(chat_header, text="💬  Kanal Sohbeti", font=self.font_title,
+        tk.Label(chat_header, text="Channel Chat", font=self.font_title,
                  fg=FG_ACCENT_LIGHT, bg=BG_HEADER).pack(side="left", padx=15, pady=12)
-
-        channel_frame = tk.Frame(chat_header, bg=BG_HEADER)
-        channel_frame.pack(side="right", padx=15, pady=12)
-        tk.Label(channel_frame, text="Yayın Kanalı:", font=self.font_body,
-                 fg=FG_DIM, bg=BG_HEADER).pack(side="left", padx=(0, 5))
-
-        style = ttk.Style()
-        style.theme_use('clam')
-        style.configure("TCombobox", fieldbackground=BG_INPUT, background=BG_DARK, foreground=FG_TEXT)
-
-        self.room_var = tk.StringVar()
-        self.room_cb = ttk.Combobox(channel_frame, textvariable=self.room_var,
-                                    state="readonly", width=18, font=self.font_body)
-        cb_values = [f"{rid} - {ROOM_NAMES.get(rid, 'Bilinmeyen')}" for rid in self.active_rooms]
-        self.room_cb['values'] = cb_values
-        if cb_values:
-            self.room_cb.current(0)
-        self.room_cb.bind("<<ComboboxSelected>>", self._on_room_changed)
-        self.room_cb.pack(side="left")
 
         tk.Frame(right, bg=BORDER_COLOR, height=1).pack(fill="x")
 
-        # Sohbet alanı
         self.chat_area = scrolledtext.ScrolledText(
             right, font=self.font_chat, bg=BG_PANEL, fg=FG_TEXT,
             relief="flat", bd=0, wrap="word", state="disabled",
             insertbackground=FG_TEXT, selectbackground=FG_ACCENT,
-            padx=15, pady=10, spacing3=4
+            padx=15, pady=10, spacing1=4
         )
         self.chat_area.pack(fill="both", expand=True)
 
-        # Tag tanımları — TÜMÜ burada, widget oluşturulur oluşturulmaz
-        self.chat_area.tag_configure("time",
-            foreground=FG_DIM, font=("Segoe UI", 9))
-        self.chat_area.tag_configure("channel",
-            foreground=FG_ACCENT, font=("Segoe UI", 9, "bold"))
-        self.chat_area.tag_configure("self",
-            foreground=FG_ACCENT_LIGHT, font=("Segoe UI", 10, "bold"))
-        self.chat_area.tag_configure("other",
-            foreground=FG_GREEN, font=("Segoe UI", 10, "bold"))
-        self.chat_area.tag_configure("text",
-            foreground=FG_TEXT, font=("Segoe UI", 11))
-        self.chat_area.tag_configure("system",
-            foreground=FG_ORANGE, font=("Segoe UI", 10, "italic"))
+        self.chat_area.tag_configure("time", foreground=FG_DIM, font=("Segoe UI", 9))
+        self.chat_area.tag_configure("channel", foreground=FG_ACCENT, font=("Segoe UI", 9, "bold"))
+        self.chat_area.tag_configure("self", foreground=FG_ACCENT_LIGHT, font=("Segoe UI", 10, "bold"))
+        self.chat_area.tag_configure("other", foreground=FG_GREEN, font=("Segoe UI", 10, "bold"))
+        self.chat_area.tag_configure("text", foreground=FG_TEXT, font=("Segoe UI", 11))
+        self.chat_area.tag_configure("system", foreground=FG_ORANGE, font=("Segoe UI", 10, "italic"))
 
-        # Giriş satırı
         tk.Frame(right, bg=BORDER_COLOR, height=1).pack(fill="x")
         input_frame = tk.Frame(right, bg=BG_INPUT, height=52)
         input_frame.pack(fill="x")
@@ -318,22 +290,21 @@ class WalkieTalkieGUI:
         self.chat_input.pack(side="left", fill="both", expand=True, padx=15, pady=8)
         self.chat_input.bind("<Return>", self._on_send_message)
 
-        send_btn = tk.Button(input_frame, text="Gönder", font=self.font_body,
+        send_btn = tk.Button(input_frame, text="Send", font=self.font_body,
                              bg=FG_ACCENT, fg="white", activebackground=FG_ACCENT_LIGHT,
                              relief="flat", bd=0, cursor="hand2", padx=20,
                              command=lambda: self._on_send_message(None))
         send_btn.pack(side="right", padx=(0, 10), pady=8)
 
-        # PTT çubuğu
         tk.Frame(right, bg=BORDER_COLOR, height=1).pack(fill="x")
         self.ptt_frame = tk.Frame(right, bg=PTT_IDLE_BG)
         self.ptt_frame.pack(fill="x")
 
-        self.ptt_indicator = tk.Label(self.ptt_frame, text="●", font=("Segoe UI", 14),
+        self.ptt_indicator = tk.Label(self.ptt_frame, text="+", font=("Segoe UI", 14),
                                       fg=FG_GREEN, bg=PTT_IDLE_BG)
         self.ptt_indicator.pack(side="left", padx=(20, 8), pady=8)
 
-        self.vad_btn = tk.Button(self.ptt_frame, text="VAD: Kapalı", font=self.font_small,
+        self.vad_btn = tk.Button(self.ptt_frame, text="VAD: Off", font=self.font_small,
                                  fg=FG_DIM, bg=BG_DARK, activebackground=BG_INPUT,
                                  activeforeground=FG_TEXT, relief="flat", cursor="hand2",
                                  command=self._on_vad_toggle, padx=10, pady=4)
@@ -344,36 +315,36 @@ class WalkieTalkieGUI:
         self.ptt_badge.pack(side="right", padx=10)
 
         self.ptt_label = tk.Label(self.ptt_frame,
-                                  text="HAZIR  ·  Konuşmak için  Shift + V  basılı tut",
+                                  text="READY - Hold  Shift + V  to talk",
                                   font=self.font_ptt, fg=FG_GREEN, bg=PTT_IDLE_BG)
         self.ptt_label.pack(side="left", fill="x", expand=True)
 
         self._update_ptt_badge()
 
-    def _on_room_changed(self, event):
-        val = self.room_var.get()
-        if val:
-            self.current_room_id = int(val.split(" - ")[0])
-            self._update_ptt_badge()
-            log.debug(f"Kanal: {ROOM_NAMES.get(self.current_room_id)}")
-            if self.on_channel_changed:
-                self.on_channel_changed(self.current_room_id)
+    def _on_room_toggle(self, rid, var):
+        if var.get():
+            self.enabled_rooms.add(rid)
+        else:
+            self.enabled_rooms.discard(rid)
+        log.info(f"Room {ROOM_NAMES.get(rid)} {'enabled' if var.get() else 'disabled'}")
+        self._update_ptt_badge()
+        if self.on_rooms_toggled:
+            self.on_rooms_toggled(self.enabled_rooms)
 
     def _update_ptt_badge(self):
-        room_name = ROOM_NAMES.get(self.current_room_id, "Bilinmeyen")
-        icon = "🔒" if self.current_room_id != 0 else "🔓"
-        self.ptt_badge.config(text=f"{room_name} {icon}")
+        names = [ROOM_NAMES.get(r, str(r)) for r in sorted(self.enabled_rooms)]
+        self.ptt_badge.config(text=", ".join(names) if names else "None")
 
     def _on_vad_toggle(self):
         self.vad_state = not self.vad_state
         if self.vad_state:
-            self.vad_btn.config(text="VAD: AÇIK", fg=FG_GREEN, bg=BG_SIDEBAR)
-            self._set_ptt_state(True, override_text="YAYINDA  ·  Sesle aktivasyon devrede...")
+            self.vad_btn.config(text="VAD: On", fg=FG_GREEN, bg=BG_SIDEBAR)
+            self._set_ptt_state(True, override_text="ON AIR - Voice activation active...")
         else:
-            self.vad_btn.config(text="VAD: Kapalı", fg=FG_DIM, bg=BG_DARK)
+            self.vad_btn.config(text="VAD: Off", fg=FG_DIM, bg=BG_DARK)
             self._set_ptt_state(False)
         if self.on_vad_toggled:
-            self.on_vad_toggled(self.vad_state, self.current_room_id)
+            self.on_vad_toggled(self.vad_state, self.enabled_rooms)
 
     def _bind_keys(self):
         self.root.bind("<KeyPress>", self._on_key_press)
@@ -392,7 +363,7 @@ class WalkieTalkieGUI:
                     if self.on_play_beep:
                         self.on_play_beep(880, 50)
                     if self.on_ptt_start:
-                        self.on_ptt_start(self.current_room_id)
+                        self.on_ptt_start(self.enabled_rooms)
         except Exception as e:
             log.error(f"key_press: {e}", exc_info=True)
 
@@ -418,23 +389,23 @@ class WalkieTalkieGUI:
         except Exception as e:
             log.error(f"key_release: {e}", exc_info=True)
 
-    def _set_ptt_state(self, active: bool, override_text: str = None):
+    def _set_ptt_state(self, active, override_text=None):
         try:
             if active:
                 self.ptt_frame.configure(bg=PTT_ACTIVE_BG)
-                self.ptt_indicator.configure(fg=FG_RED, bg=PTT_ACTIVE_BG, text="⏺")
+                self.ptt_indicator.configure(fg=FG_RED, bg=PTT_ACTIVE_BG, text="*")
                 if not self.vad_state:
                     self.vad_btn.configure(bg=PTT_ACTIVE_BG)
-                txt = override_text or f"YAYINDA ({ROOM_NAMES.get(self.current_room_id, '?')})  ·  Konuşuluyor..."
+                txt = override_text or f"ON AIR - Speaking to {', '.join(ROOM_NAMES.get(r, str(r)) for r in sorted(self.enabled_rooms))}..."
                 self.ptt_label.configure(text=txt, fg=FG_RED, bg=PTT_ACTIVE_BG)
                 self.ptt_badge.configure(bg=PTT_ACTIVE_BG)
             else:
                 self.ptt_frame.configure(bg=PTT_IDLE_BG)
-                self.ptt_indicator.configure(fg=FG_GREEN, bg=PTT_IDLE_BG, text="●")
+                self.ptt_indicator.configure(fg=FG_GREEN, bg=PTT_IDLE_BG, text="+")
                 if not self.vad_state:
                     self.vad_btn.configure(bg=BG_DARK)
                 self.ptt_label.configure(
-                    text="HAZIR  ·  Konuşmak için  Shift + V  basılı tut",
+                    text="READY - Hold  Shift + V  to talk",
                     fg=FG_GREEN, bg=PTT_IDLE_BG)
                 self.ptt_badge.configure(bg=PTT_IDLE_BG)
         except Exception as e:
@@ -446,19 +417,18 @@ class WalkieTalkieGUI:
             if not text:
                 return "break"
             self.chat_input.delete(0, "end")
-            self.add_chat_message(self.username, text, is_self=True, room_id=self.current_room_id)
-            if self.on_send_chat:
-                self.on_send_chat(text, self.current_room_id)
+            for rid in self.enabled_rooms:
+                self.add_chat_message(self.username, text, is_self=True, room_id=rid)
+                if self.on_send_chat:
+                    self.on_send_chat(text, rid)
             return "break"
         except Exception as e:
             log.error(f"send_message: {e}", exc_info=True)
 
-    def append_chat(self, sender: str, message: str, room_id: int, is_self: bool = False):
-        """Ağdan gelen mesajı ekrana yazar."""
+    def append_chat(self, sender, message, room_id, is_self=False):
         self.add_chat_message(sender, message, is_self=is_self, room_id=room_id)
 
-    def add_chat_message(self, sender: str, message: str, is_self: bool = False, room_id: int = 0):
-        """Mesajı renk kodlu tag'lerle sohbet alanına ekler."""
+    def add_chat_message(self, sender, message, is_self=False, room_id=0):
         if self._is_closing:
             return
 
@@ -481,7 +451,7 @@ class WalkieTalkieGUI:
 
         self.root.after(0, _update)
 
-    def add_system_message(self, message: str):
+    def add_system_message(self, message):
         if self._is_closing:
             return
 
@@ -490,7 +460,7 @@ class WalkieTalkieGUI:
                 if self._is_closing or not getattr(self, "chat_area", None) or not self.root.winfo_exists():
                     return
                 self.chat_area.config(state="normal")
-                self.chat_area.insert("end", f"\n[SİSTEM] {message}\n", "system")
+                self.chat_area.insert("end", f"\n[SYSTEM] {message}\n", "system")
                 self.chat_area.config(state="disabled")
                 self.chat_area.see("end")
             except tk.TclError:
@@ -498,7 +468,7 @@ class WalkieTalkieGUI:
 
         self.root.after(0, _update)
 
-    def update_peers(self, peers: list):
+    def update_peers(self, peers):
         if self._is_closing:
             return
 
@@ -518,14 +488,14 @@ class WalkieTalkieGUI:
                     widget.destroy()
 
                 if not peers:
-                    tk.Label(self.peer_widgets_frame, text="Henüz eş bulunamadı…",
+                    tk.Label(self.peer_widgets_frame, text="No peers found yet...",
                              font=self.font_small, fg=FG_DIM, bg=BG_SIDEBAR).pack(pady=20)
                     return
 
                 for name, ip in peers:
                     row = tk.Frame(self.peer_widgets_frame, bg=BG_SIDEBAR)
                     row.pack(fill="x", pady=2)
-                    tk.Label(row, text="●", font=("Segoe UI", 8), fg=PEER_DOT_ONLINE, bg=BG_SIDEBAR).pack(side="left", padx=(5, 8))
+                    tk.Label(row, text="+", font=("Segoe UI", 8), fg=PEER_DOT_ONLINE, bg=BG_SIDEBAR).pack(side="left", padx=(5, 8))
                     tk.Label(row, text=name, font=self.font_peer, fg=FG_TEXT, bg=BG_SIDEBAR).pack(side="left")
                     tk.Label(row, text=ip, font=self.font_small, fg=FG_DIM, bg=BG_SIDEBAR).pack(side="right", padx=5)
 
@@ -533,7 +503,7 @@ class WalkieTalkieGUI:
                         self.on_play_beep(880, 50)
                         self.root.after(100, lambda: self.on_play_beep(1046, 50))
 
-                log.debug(f"Eş listesi: {len(peers)} eş")
+                log.debug(f"Peer list: {len(peers)} peers")
             except Exception as e:
                 log.error(f"update_peers: {e}", exc_info=True)
 
@@ -555,7 +525,7 @@ class WalkieTalkieGUI:
         self.root.after(0, self._do_close)
 
     def _create_tray_image(self):
-        image = Image.new('RGB', (64, 64), color=(26, 26, 36))
+        image = Image.new("RGB", (64, 64), color=(26, 26, 36))
         dc = ImageDraw.Draw(image)
         dc.line((32, 10, 32, 40), fill=FG_ACCENT, width=4)
         dc.rectangle((20, 30, 44, 60), fill=FG_TEXT)
@@ -568,32 +538,29 @@ class WalkieTalkieGUI:
         self.root.after(0, self.root.deiconify)
 
     def _on_window_closing(self):
-        """Kapatma butonuna basılınca ne yapılacağını kullanıcıya sor."""
         if self._is_closing:
             return
         self._show_close_dialog()
 
     def _show_close_dialog(self):
-        """'Traye küçült / Tamamen çık' seçim penceresi."""
         dialog = tk.Toplevel(self.root)
-        dialog.title("Çıkış")
+        dialog.title("Exit")
         dialog.configure(bg=BG_DARK)
         dialog.resizable(False, False)
-        dialog.grab_set()          # Modal yap
+        dialog.grab_set()
         dialog.focus_force()
 
-        # Ortala
         dialog.update_idletasks()
         dw, dh = 340, 180
         rx = self.root.winfo_x() + (self.root.winfo_width() - dw) // 2
         ry = self.root.winfo_y() + (self.root.winfo_height() - dh) // 2
         dialog.geometry(f"{dw}x{dh}+{rx}+{ry}")
 
-        tk.Label(dialog, text="Ne yapmak istiyorsunuz?",
+        tk.Label(dialog, text="What would you like to do?",
                  font=tkfont.Font(family="Segoe UI", size=12, weight="bold"),
                  fg=FG_TEXT, bg=BG_DARK).pack(pady=(24, 6))
 
-        tk.Label(dialog, text="Uygulama arka planda çalışmaya devam edebilir.",
+        tk.Label(dialog, text="The app can continue running in the background.",
                  font=tkfont.Font(family="Segoe UI", size=9),
                  fg=FG_DIM, bg=BG_DARK).pack(pady=(0, 18))
 
@@ -608,13 +575,13 @@ class WalkieTalkieGUI:
             dialog.destroy()
             self._do_close()
 
-        tk.Button(btn_frame, text="🔽  Traye Küçült",
+        tk.Button(btn_frame, text="Minimize to Tray",
                   font=tkfont.Font(family="Segoe UI", size=10),
                   bg=BG_INPUT, fg=FG_TEXT, activebackground=BG_PANEL,
                   activeforeground=FG_TEXT, relief="flat", cursor="hand2",
                   command=minimize_to_tray, padx=12, pady=8).pack(side="left", expand=True, fill="x", padx=(0, 6))
 
-        tk.Button(btn_frame, text="❌  Tamamen Çık",
+        tk.Button(btn_frame, text="Quit",
                   font=tkfont.Font(family="Segoe UI", size=10),
                   bg=FG_RED, fg="white", activebackground="#e05555",
                   activeforeground="white", relief="flat", cursor="hand2",
@@ -623,16 +590,15 @@ class WalkieTalkieGUI:
         dialog.bind("<Escape>", lambda e: dialog.destroy())
 
     def _go_to_tray(self):
-        """Pencereyi gizle, sistem tepsisine al."""
         self.root.withdraw()
         image = self._create_tray_image()
         menu = pystray.Menu(
-            pystray.MenuItem("Göster", self._show_window, default=True),
-            pystray.MenuItem("Çıkış", self._handle_actual_close)
+            pystray.MenuItem("Show", self._show_window, default=True),
+            pystray.MenuItem("Quit", self._handle_actual_close)
         )
         self.tray_icon = pystray.Icon("walkie_talkie", image, "Walkie-Talkie LAN", menu=menu)
         threading.Thread(target=self.tray_icon.run, daemon=True).start()
-        log.info("Uygulama sistem tepsisine alındı")
+        log.info("Application minimized to system tray")
 
     def mainloop(self):
         try:

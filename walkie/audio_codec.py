@@ -1,11 +1,7 @@
-"""
-Opus ses codec'i — PyAV 16 kullanır.
-AudioFrame.from_ndarray() ile temiz encode, flush ile delayed packet sorunu çözülmüş.
-"""
+import logging
 
 import av
 import numpy as np
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -13,7 +9,7 @@ SAMPLE_RATE   = 48000
 FRAME_SAMPLES = 960    # 20ms @ 48kHz
 BITRATE       = 24000  # 24 kbps
 
-# PTS sayacı — encoder her frame için artan PTS ister
+# PTS counter - encoder requires monotonically increasing PTS per frame
 _pts_counter = 0
 
 
@@ -40,15 +36,12 @@ _decoder = _make_decoder()
 
 
 def encode(pcm_data: np.ndarray) -> bytes:
-    """
-    int16 PCM -> Opus paket baytları.
-    from_ndarray kullanır, her frame sonrası flush yapar.
-    """
+    # Encode int16 PCM to Opus packet bytes Uses from_ndarray, flushes after each frame
     global _pts_counter
     try:
         samples = pcm_data.flatten().astype(np.int16)
 
-        # Boyutu normalize et
+        # Normalize size
         if len(samples) < FRAME_SAMPLES:
             padded = np.zeros(FRAME_SAMPLES, dtype=np.int16)
             padded[:len(samples)] = samples
@@ -56,10 +49,10 @@ def encode(pcm_data: np.ndarray) -> bytes:
         else:
             samples = samples[:FRAME_SAMPLES]
 
-        # int16 -> float32 (fltp için shape: [1, FRAME_SAMPLES])
+        # int16 - float32 (fltp shape: [1, FRAME_SAMPLES])
         float_samples = (samples.astype(np.float32) / 32768.0).reshape(1, FRAME_SAMPLES)
 
-        # AudioFrame.from_ndarray — en güvenilir yöntem
+        # AudioFrame.from_ndarray
         frame = av.AudioFrame.from_ndarray(float_samples, format="fltp", layout="mono")
         frame.sample_rate = SAMPLE_RATE
         frame.pts = _pts_counter
@@ -67,25 +60,23 @@ def encode(pcm_data: np.ndarray) -> bytes:
 
         # Encode + flush
         packets = _encoder.encode(frame)
-        # Opus encoder delayed olabilir, flush ile zorla al
+        # Opus encoder may hold back packets flush to force output
         if not packets:
             packets = _encoder.encode(None)
 
         if not packets:
-            log.warning("Opus encode: paket üretilemedi")
+            log.warning("Opus encode: no packet produced")
             return b""
 
         return bytes(packets[0])
 
     except Exception as e:
-        log.error(f"Opus encode hatası: {e}", exc_info=True)
+        log.error(f"Opus encode error: {e}", exc_info=True)
         return b""
 
 
 def decode(opus_bytes: bytes) -> np.ndarray:
-    """
-    Opus paket baytları -> int16 PCM numpy dizisi.
-    """
+    # Decode Opus packet bytes to int16 PCM numpy array
     if not opus_bytes:
         return np.zeros(FRAME_SAMPLES, dtype=np.int16)
 
@@ -94,17 +85,17 @@ def decode(opus_bytes: bytes) -> np.ndarray:
         frames = _decoder.decode(packet)
 
         if not frames:
-            log.warning("Opus decode: frame üretilemedi")
+            log.warning("Opus decode: no frame produced")
             return np.zeros(FRAME_SAMPLES, dtype=np.int16)
 
-        # to_ndarray ile direkt numpy array al (fltp -> shape [1, N])
+        # to_ndarray returns numpy array directly (fltp - shape [1, N])
         arr = frames[0].to_ndarray()  # fltp: shape (1, samples)
-        float_pcm = arr[0]            # shape (samples,)
+        float_pcm = arr[0]            # shape (samples)
 
-        # float32 -> int16
+        # float32 - int16
         pcm = (np.clip(float_pcm, -1.0, 1.0) * 32767).astype(np.int16)
 
-        # Boyutu normalize et
+        # Normalize size
         if len(pcm) < FRAME_SAMPLES:
             padded = np.zeros(FRAME_SAMPLES, dtype=np.int16)
             padded[:len(pcm)] = pcm
@@ -112,5 +103,5 @@ def decode(opus_bytes: bytes) -> np.ndarray:
         return pcm[:FRAME_SAMPLES]
 
     except Exception as e:
-        log.error(f"Opus decode hatası: {e}", exc_info=True)
+        log.error(f"Opus decode error: {e}", exc_info=True)
         return np.zeros(FRAME_SAMPLES, dtype=np.int16)
