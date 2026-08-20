@@ -19,6 +19,8 @@ htmlcov/
 uv.lock
 walkie_config.toml
 *.bak
+PLAN.md 
+AGENTS.md 
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
