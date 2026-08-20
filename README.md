@@ -79,7 +79,7 @@ sudo apt install -y portaudio19-dev gobject-introspection \
 **Arch Linux:**
 
 ```bash
-sudo pacman -S --needed portaudio gobject-introspection pkgconf python tk
+sudo pacman -S --needed portaudio gobject-introspection pkgconf python3 tk
 ```
 
 **macOS (Homebrew):**
